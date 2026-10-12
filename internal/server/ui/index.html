@@ -1,0 +1,1867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raw data</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect x=%221%22 y=%223%22 width=%2214%22 height=%2211%22 rx=%223%22 fill=%22%237d8cff%22/%3E%3Ccircle cx=%225.5%22 cy=%228.5%22 r=%221.3%22 fill=%22%23fff%22/%3E%3Ccircle cx=%2210.5%22 cy=%228.5%22 r=%221.3%22 fill=%22%23fff%22/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f4f6ff; --card: #ffffff; --text: #1e2355; --muted: #5a618e;
+    --accent: #7d8cff; --accent-text: #ffffff; --link: #3446c9; --soft: #e8ebff; --ok: #1f9d55; --off: #9aa0bd; --border: #dce1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12142a; --card: #1c1f3d; --text: #e8eaff; --muted: #a3a8cc;
+      --accent: #7d8cff; --accent-text: #0e1030; --link: #aab4ff; --soft: #262a52; --ok: #4ade80; --off: #6b7094; --border: #2c3060;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+         font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; }
+  .empty, .foot, #filespage { max-width: 620px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+       margin: 16px 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .foot { color: var(--muted); font-size: 0.85rem; margin: 32px 0 8px; line-height: 1.6; }
+  nav.top { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin-bottom: 16px; font-size: 0.95rem; }
+  a { color: var(--link); }
+  nav.top a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 28px; }
+  nav.top a.here { color: var(--text); font-weight: 600; }
+  nav.top .acct { margin-left: auto; color: var(--muted); }
+  .foot a { color: inherit; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+          padding: 16px; margin-bottom: 12px; }
+  .head { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--off); flex: none; }
+  .dot.on { background: var(--ok); }
+  .name { font-weight: 600; overflow-wrap: anywhere; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin-left: auto; text-align: right; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  td { padding: 4px 0; border-top: 1px solid var(--border); }
+  td:last-child { text-align: right; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 16px;
+           background: var(--accent); color: var(--accent-text); cursor: pointer; }
+  button.soft { background: var(--soft); color: var(--text); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  input[type=text] { font: inherit; flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px;
+                     border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+  .row.pixels { margin-top: 8px; gap: 6px; }
+  input.code { width: 72px; font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border);
+               background: var(--bg); color: var(--text); }
+  .irsaved { display: inline-flex; gap: 2px; }
+  .row.emojis { gap: 6px; }
+  .row.emojis button { padding: 6px; line-height: 0; }
+  .row.emojis img { width: 32px; height: 32px; }
+  input[type=color].pixel { width: 36px; height: 32px; }
+  input[type=color] { width: 48px; height: 40px; border: 1px solid var(--border); border-radius: 10px;
+                      background: var(--bg); padding: 2px; }
+  .axes { display: grid; gap: 14px; margin-top: 10px; }
+  .axis-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .axis-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .axis-row { display: flex; align-items: center; gap: 6px; }
+  .axis-row input[type=range] { flex: 1; min-width: 60px; }
+  button.chip { flex: none; padding: 8px 0; min-width: 40px; border-radius: 999px; background: var(--soft);
+                color: var(--text); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  .stats { font-variant-numeric: tabular-nums; }
+  .events { list-style: none; margin: 0; padding: 0; font-variant-numeric: tabular-nums; }
+  .events li { padding: 3px 0; border-top: 1px solid var(--border); }
+  .events li.sent { color: var(--muted); }
+  .eventshead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .eventshead h2 { margin-bottom: 8px; }
+  .eventshead select { padding: 4px 8px; font-size: 0.85rem; }
+  .status { color: var(--muted); font-size: 0.9rem; min-height: 1.4em; margin-top: 12px; }
+  .empty { color: var(--muted); }
+  .joinreq { background: var(--card); border: 2px solid var(--accent); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+  .joincode { font: 600 1.3rem ui-monospace, monospace; letter-spacing: 0.06em; color: var(--text); }
+  select.select { font: inherit; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border);
+                  background: var(--bg); color: var(--text); }
+  label.check { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.9rem; }
+  label.check input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+  .small { font-size: 0.85rem; }
+  .muted.small { margin-top: 6px; }
+  .summary { color: var(--muted); font-size: 0.9rem; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  /* Views: the parts in the order of the robot's 3D model, or a selection of them. */
+  nav.views { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+  nav.views button { padding: 6px 12px; border-radius: 999px; background: var(--soft); color: var(--text); font-size: 0.9rem; }
+  nav.views button.here { background: var(--accent); color: var(--accent-text); }
+  .parts { columns: 2 440px; column-gap: 12px; }
+  .part, .parts > .events-panel { break-inside: avoid; border: 1px solid var(--border); border-radius: 12px;
+          padding: 10px 12px 12px; margin: 0 0 12px; background: var(--bg); }
+  .parts > .events-panel { margin-top: 0; }
+  .part-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .part-head h3 { margin: 0; font-size: 1rem; }
+  .part-head .chipname { color: var(--muted); font-size: 0.8rem; }
+  .part-head a.s3d { margin-left: auto; font-size: 0.8rem; color: var(--muted); text-decoration: none;
+                     border: 1px solid var(--border); border-radius: 6px; padding: 0 6px; }
+  .lastev { color: var(--muted); font-size: 0.85rem; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  table.readings { margin-top: 6px; font-size: 0.92rem; }
+  .panel { margin-top: 10px; }
+  .panel h4 { margin: 0 0 6px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .eventshead h4 { margin: 0; }
+  .card > .status { position: sticky; bottom: 0; background: var(--card); padding: 6px 0; margin-top: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="top">
+    <a href="/" class="here">Raw data</a>
+    <a class="mgr" href="#" hidden>Your robots</a>
+    <span class="acct" id="acct"></span>
+  </nav>
+  <h1>Raw data</h1>
+  <p class="sub" id="conn" aria-live="polite">Connecting…</p>
+  <div id="joins"></div>
+  <div id="robots"></div>
+  <div id="filespage" hidden></div>
+  <div class="empty" id="empty" hidden>
+    <p>Raw data shows everything a Stackchan robot senses, part by part, and drives all of it
+    from your browser. More on <a href="https://s.i41.eu/raw">s.i41.eu/raw</a>.</p>
+    <p>No robot is paired with this browser yet. Swipe up on the robot, tap <b>QR</b>, and scan
+    the code it shows, or:</p>
+    <div class="row">
+      <button id="join">Ask a paired phone</button>
+      <span id="joinStatus"></span>
+    </div>
+    <form id="codeForm" class="row" style="margin-top:12px">
+      <input id="codeInput" class="code" style="width:130px" placeholder="Robot code" autocomplete="off" aria-label="Robot code">
+      <button class="soft">Pair with code</button>
+    </form>
+    <p style="font-size:0.85rem">The robot code is the 8 characters under the QR code on its screen
+    (swipe up on the robot and tap <b>QR</b> to show it again).</p>
+    <p style="font-size:0.85rem" class="mgr-p" hidden>A new robot? <a class="mgr-setup" href="#">Set it up over USB</a>
+    in Chrome: one button.</p>
+  </div>
+  <footer class="foot">
+    Open source, a proof of concept:
+    <a href="https://github.com/i41-eu/q41eu-raw">q41eu-raw</a> (this page) ·
+    the robot's <a href="https://github.com/i41-eu/i41eu-embody">Embody Mode firmware</a> ·
+    <a href="https://github.com/i41-eu/i41eu-embody/blob/main/firmware/main/apps/app_embody_mode/SETUP.md">build it yourself</a> ·
+    part of <a href="https://github.com/i41-eu/i41eu-arch">i41eu-arch</a> ·
+    <a href="https://github.com/sponsors/mj41">sponsor mj41</a><span class="mgr-p" hidden> ·
+    your robot here? <a class="mgr-setup" href="#">set it up over USB</a></span><br>
+    Stack-chan (スタックチャン) is a registered trademark of Shinya Ishikawa; this project is
+    independent and only made to work with Stack-chan robots.
+  </footer>
+</main>
+<script src="/e2e.js"></script>
+<script>
+let managerURL = ""; // the robots' manager (m.i41.eu, or a home's own), from /api/me
+// End-to-end encryption (e2e.js; i41eu-arch docs/e2ee.md). A pairing redirect may carry the
+// robot's key and pairing secret in the fragment, which the server never saw.
+// A private robot's owner signs in first: its refusal page kept the fragment in this tab (the
+// sign-in's redirects lose it), used here within 10 minutes.
+const pairedParam = new URLSearchParams(location.search).get("paired");
+let pairHash = location.hash;
+try {
+  const kept = JSON.parse(sessionStorage.getItem("e2e-pair") || "null");
+  sessionStorage.removeItem("e2e-pair");
+  if (pairedParam && !pairHash.startsWith("#e2e=") && kept && Date.now() - kept.at < 10 * 60 * 1000) pairHash = kept.hash;
+} catch (e) {}
+if (pairedParam && pairHash.startsWith("#e2e=")) E2E.takeFragment(pairedParam, pairHash);
+
+// e2eAttach makes a media socket speak to an encrypted robot: 0x30 messages are opened and
+// passed on as the plaintext message they carry; speaker audio (0x03) goes sealed as 0x31.
+function e2eAttach(ws, robotId) {
+  let handler = null;
+  Object.defineProperty(ws, "onmessage", { get: () => handler, set: (fn) => { handler = fn; } });
+  ws.addEventListener("message", async (ev) => {
+    const u8 = new Uint8Array(ev.data);
+    if (u8[0] === 0x30) {
+      const inner = await E2E.openBinary(robotId, u8);
+      // A snapshot (0x07) comes sealed on whichever media socket is open: the server cannot keep it.
+      if (inner && inner[0] === 0x07) { cards.get(robotId)?.showSnapshot?.(inner.slice(1)); return; }
+      if (inner && handler) handler({ data: inner.buffer.slice(inner.byteOffset, inner.byteOffset + inner.byteLength) });
+      return;
+    }
+    if (handler) handler(ev);
+  });
+  const send = ws.send.bind(ws);
+  ws.send = (data) => {
+    const c = cards.get(robotId);
+    const binary = data instanceof ArrayBuffer || ArrayBuffer.isView(data);
+    if (binary && c && c.robot && c.robot.e2e && E2E.known(robotId)) {
+      const u8 = data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+      E2E.sealBinary(robotId, u8).then(send).catch(() => {});
+      return;
+    }
+    send(data);
+  };
+}
+"use strict";
+const list = document.getElementById("robots");
+const empty = document.getElementById("empty");
+const connLine = document.getElementById("conn");
+const cards = new Map();     // robot id -> card
+const pendingPings = new Map(); // ping id -> {t0, resolve}
+// A sent command as a short line for the Events list.
+function describeCommand(cmd, a) {
+  a = a || {};
+  let text;
+  switch (cmd) {
+    case "ir_send":
+      text = "IR " + (a.raw ? `raw (${String(a.raw).split(",").length} timings)` : `NEC ${hex(a.address || 0)} / ${hex(a.command || 0)}`) +
+        (a.frames > 1 ? ` · ${a.frames}×` : "") + (a.repeat ? ` · hold ×${a.repeat}` : "") + (a.loopback ? " · self-test" : "");
+      break;
+    case "look": text = `look yaw ${a.yaw}° pitch ${a.pitch}°`; break;
+    case "leds": text = "LEDs " + (a.effect || (a.pixels ? "single LEDs" : [a.left, a.right].filter(Boolean).join(" "))); break;
+    case "say": text = `say “${a.text || ""}”`; break;
+    case "picture": text = `picture (${Math.round((a.bytes || 0) / 1024)} KB)`; break;
+    case "asset_upload": text = `upload ${a.name} (${Math.round((a.bytes || 0) / 1024)} KB)`; break;
+    case "asset_delete": text = `delete ${a.name}`; break;
+    case "assets": text = "list files"; break;
+    case "play": text = `play ${a.asset}`; break;
+    case "sprite": text = `sprite ${a.id}` + (a.asset ? ` = ${a.asset}` : "") + ("x" in a ? ` at ${a.x},${a.y}` : "") + (a.ms ? ` in ${a.ms} ms` : ""); break;
+    default:
+      text = cmd.replaceAll("_", " ") + " " +
+        Object.entries(a).map(([k, v]) => `${k} ${typeof v === "object" ? JSON.stringify(v) : v}`).join(", ");
+  }
+  text = text.trim();
+  return text.length > 80 ? text.slice(0, 79) + "…" : text;
+}
+const hex = (n) => "0x" + Number(n).toString(16).toUpperCase().padStart(2, "0");
+const serverInfo = fetch("/api/info").then((r) => r.json()).catch(() => ({})); // {https_url?}
+
+const EMOTIONS = ["neutral", "happy", "angry", "sad", "doubt", "sleepy"];
+const STICKERS = ["heart", "angry", "sweat", "shy", "dizzy"];
+// Fluent Emoji Flat (MIT, © Microsoft), served from /emoji/<name>.svg.
+const EMOJIS = ["smile", "grin", "laugh", "wink", "love", "cool", "surprised", "thinking", "sleepy", "cry", "sob", "angry"];
+
+// Scale and crop a picture to the robot screen (320x240) as a baseline JPEG.
+async function toJpeg320(file) {
+  const bmp = await createImageBitmap(file);
+  const canvas = Object.assign(document.createElement("canvas"), { width: 320, height: 240 });
+  const scale = Math.max(320 / bmp.width, 240 / bmp.height);
+  const w = bmp.width * scale, h = bmp.height * scale;
+  canvas.getContext("2d").drawImage(bmp, (320 - w) / 2, (240 - h) / 2, w, h);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("could not encode JPEG"))), "image/jpeg", 0.8));
+}
+
+// A black 320x240 JPEG: a clean background for a picture that has its own.
+function blackJpeg() {
+  const canvas = Object.assign(document.createElement("canvas"), { width: 320, height: 240 });
+  const g = canvas.getContext("2d");
+  g.fillStyle = "#000";
+  g.fillRect(0, 0, 320, 240);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("could not encode JPEG"))), "image/jpeg", 0.8));
+}
+
+// An emoji drawn large in the middle of a black 320x240 JPEG.
+async function emojiJpeg(name) {
+  // The files say 32x32; enlarge them first so the browser rasterizes the vectors at full size.
+  const svg = (await (await fetch("/emoji/" + name + ".svg")).text()).replace('width="32" height="32"', 'width="200" height="200"');
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const canvas = Object.assign(document.createElement("canvas"), { width: 320, height: 240 });
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 320, 240);
+    ctx.drawImage(img, 60, 20, 200, 200);
+    return await new Promise((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("could not encode JPEG"))), "image/jpeg", 0.9));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+// The robot's parts in the order of its 3D model (s.i41.eu/s3d, data/components.json), each with
+// the readings (telemetry keys) and events that come from it; "pick" is its feature there. The
+// yaw and pitch servos are one part here (one set of controls), the IR receiver and LED too.
+const S3D = "https://s.i41.eu/s3d/";
+const PARTS = [
+  { id: "ft6336u", name: "Touch screen", chip: "FT6336U", pick: "touch-screen", events: /^(screen_tap|screen_long_press|touch_)/ },
+  { id: "ili9342", name: "Display", chip: "ILI9342C", pick: "display", keys: /^(brightness_pct|auto_brightness|screensaver)$/, events: /^screensaver_/ },
+  { id: "gc0308", name: "Camera", chip: "GC0308", pick: "camera", keys: /^camera_mic_off$/, events: /^(privacy|camera_reg|snapshot)/ },
+  { id: "es7210", name: "Microphones", chip: "ES7210", pick: "microphones" },
+  { id: "bmi270", name: "Motion sensor", chip: "BMI270 + BMM150", pick: "imu", keys: /^(imu_|mag_)/, events: /^(shake|pickup)$/ },
+  { id: "ltr553", name: "Light and proximity", chip: "LTR-553ALS", pick: "light", keys: /^(light_|proximity)/, events: /^proximity_/ },
+  { id: "si12t", name: "Head touch", chip: "Si12T", pick: "head-press", keys: /^head_zone/, events: /^head_(press|release|swipe)/ },
+  { id: "servos", name: "Head servos", chip: "2 × Feetech SCS0009", pick: "yaw-servo", keys: /^(head_yaw|head_pitch|yaw_|pitch_(?!voltage)|hold_s|rotate_s)/, events: /^(hold_|rotate_)/ },
+  { id: "ir", name: "Infrared", chip: "IRM56384, IR LED", pick: "ir-receiver", events: /^ir_/ },
+  { id: "st25r3916", name: "NFC reader", chip: "ST25R3916", pick: "nfc", events: /^nfc_/ },
+  { id: "axp2101", name: "Power management", chip: "AXP2101", pick: "battery", keys: /^(battery_pct|charging|core_|pmic_|usb_data)/, events: /^(power_button|usb_|battery_)/ },
+  { id: "ina226", name: "Battery monitor (body)", chip: "INA226", pick: "battery-monitor", keys: /^body_/ },
+  { id: "bm8563", name: "Real-time clock", chip: "BM8563", pick: "rtc", keys: /^(rtc_unix|system_unix)$/ },
+  { id: "esp32s3", name: "Processor", chip: "ESP32-S3", pick: "wifi", keys: /^(wifi_rssi_dbm|free_heap_kb|uptime_s|chip_temp_c)$/ },
+  { id: "rgb-leds", name: "RGB LEDs", chip: "12 × WS2812C", pick: "leds-left" },
+  { id: "aw88298", name: "Speaker", chip: "AW88298", pick: "speaker", keys: /^volume_pct$/, events: /^(sound_|play_)/ },
+  { id: "servo-supply", name: "Servo supply", chip: "", pick: "servo-power", keys: /^(servo_power|servo_voltage_v|pitch_voltage_v)$/, events: /^servo_power/ },
+  { id: "robot", name: "The robot", chip: "apps, files, standby, other readings", events: /^(standby|servers|assets|asset_|automation|launch_|server_)/ },
+];
+const partOf = (key) => (PARTS.find((p) => p.keys && p.keys.test(key)) || PARTS[PARTS.length - 1]).id;
+// Views: "parts" shows every part with all of its readings and controls; the others pick.
+const VIEWS = [
+  ["parts", "All parts", "Every part of the robot, in the order of its 3D model"],
+  ["in", "In", "What the robot senses: readings, live streams and events"],
+  ["out", "Out", "What the robot does: screen, LEDs, head, speaker, infrared"],
+  ["av", "Audio & video", "Camera, microphones and speaker"],
+  ["lights", "Lights", "The 12 LEDs, the power LED, the backlight and the light sensor"],
+  ["motion", "Motion", "Head servos, the motion sensor, the camera to watch them"],
+  ["robot", "Robot", "Apps, files, standby, latency, the processor"],
+];
+let currentView = "parts";
+try { if (VIEWS.some(([v]) => v === localStorage.getItem("raw-view"))) currentView = localStorage.getItem("raw-view"); } catch { /* private mode */ }
+function setView(v) {
+  currentView = v;
+  try { localStorage.setItem("raw-view", v); } catch { /* private mode */ }
+  for (const c of cards.values()) c.layout();
+}
+// Readings shown elsewhere (the summary line) or only switches for controls.
+const HIDDEN_READINGS = new Set(["auto_brightness", "proximity_on", "brightness_pct", "volume_pct"]);
+const duration = (s) => (s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.floor(s / 60) % 60} min` : s >= 60 ? `${Math.floor(s / 60)} min` : `${s} s`);
+// reading is a telemetry value as [label, text].
+function reading(k, v) {
+  const [label, unit] = LABELS[k] || [k.replaceAll("_", " "), ""];
+  return [label, FORMAT[k] ? FORMAT[k](v) : v + unit];
+}
+// Labels and units, in the order shown within a part.
+const LABELS = {
+  brightness_pct: ["Backlight", "%"], screensaver: ["Screensaver", ""], camera_mic_off: ["Camera & mic", ""],
+  head_yaw_deg: ["Yaw", "°"], head_pitch_deg: ["Pitch", "°"], hold_s: ["Hold", " s left"],
+  battery_pct: ["Battery", "%"], charging: ["Charging", ""],
+  wifi_rssi_dbm: ["Wi-Fi", " dBm"], free_heap_kb: ["Free memory", " kB"], uptime_s: ["Uptime", ""], volume_pct: ["Volume", "%"],
+  imu_ax_g: ["Accel X", " g"], imu_ay_g: ["Accel Y", " g"], imu_az_g: ["Accel Z", " g"], imu_gyro_dps: ["Rotation", " °/s"],
+  mag_x_ut: ["Magnetic X", " µT"], mag_y_ut: ["Magnetic Y", " µT"], mag_z_ut: ["Magnetic Z", " µT"],
+  mag_raw_x: ["Magnetic X (raw)", ""], mag_raw_y: ["Magnetic Y (raw)", ""], mag_raw_z: ["Magnetic Z (raw)", ""],
+  mag_rhall: ["Magnetometer hall (raw)", ""],
+  yaw_load_pct: ["Yaw servo load", "%"], pitch_load_pct: ["Pitch servo load", "%"],
+  yaw_temp_c: ["Yaw servo temp", " °C"], pitch_temp_c: ["Pitch servo temp", " °C"],
+  servo_voltage_v: ["Servo supply", " V"], chip_temp_c: ["Chip temp", " °C"],
+  yaw_pos_raw: ["Yaw position (raw 0–1000)", ""], yaw_speed_raw: ["Yaw speed (raw)", ""], yaw_current_raw: ["Yaw current (raw)", ""],
+  yaw_moving: ["Yaw moving", ""], pitch_voltage_v: ["Pitch servo supply", " V"], pitch_pos_raw: ["Pitch position (raw 0–1000)", ""],
+  pitch_speed_raw: ["Pitch speed (raw)", ""], pitch_current_raw: ["Pitch current (raw)", ""], pitch_moving: ["Pitch moving", ""],
+  light_ch0: ["Light CH0 (raw, visible+IR)", ""], light_ch1: ["Light CH1 (raw, IR)", ""],
+  rtc_unix: ["RTC clock", ""], system_unix: ["System clock", ""], pmic_ts_raw: ["Battery TS pin (raw)", ""],
+  servo_power: ["Servo power", ""], rotate_s: ["Rotating", " s left"],
+  head_zone0: ["Head zone 0", " (0–3)"], head_zone1: ["Head zone 1", " (0–3)"], head_zone2: ["Head zone 2", " (0–3)"],
+  light_lux: ["Light", " lux"], proximity: ["Proximity", " (0–2047)"],
+  body_battery_v: ["Body battery", " V"], body_current_ma: ["Body current (+ draw, − charge)", " mA"], body_power_mw: ["Body power (+ draw)", " mW"],
+  body_shunt_uv: ["Body shunt (raw)", " µV"],
+  usb_data: ["Computer on CoreS3 USB", ""],
+  core_battery_v: ["Core battery", " V"], core_vbus_v: ["USB input", " V"], core_system_v: ["Core system", " V"],
+  core_charge: ["Core charge", ""], core_charge_phase: ["Charge phase", ""], pmic_temp_c: ["Power chip temp", " °C"],
+  pmic_status1: ["PMIC status 1 (raw)", ""], pmic_status2: ["PMIC status 2 (raw)", ""],
+};
+// Values shown as words instead of numbers.
+const FORMAT = {
+  charging: (v) => (v ? "yes" : "no"), camera_mic_off: (v) => (v ? "off on the robot" : "allowed"),
+  screensaver: (v) => ["off", "auto", "manual"][v] ?? v, uptime_s: (v) => duration(v),
+  core_charge: (v) => ["idle", "charging", "discharging"][v] ?? v,
+  core_charge_phase: (v) => ["trickle", "pre-charge", "constant current", "constant voltage", "done", "not charging"][v] ?? v,
+  pmic_status1: (v) => hex(v), pmic_status2: (v) => hex(v),
+  usb_data: (v) => (v ? "yes" : "no"),
+  yaw_moving: (v) => (v ? "yes" : "no"), pitch_moving: (v) => (v ? "yes" : "no"),
+  servo_power: (v) => (v ? "on" : "off"),
+  rtc_unix: (v) => new Date(v * 1000).toLocaleString(), system_unix: (v) => new Date(v * 1000).toLocaleString(),
+};
+
+function el(tag, props = {}, children = []) {
+  const e = Object.assign(document.createElement(tag), props);
+  for (const c of children) e.append(c);
+  return e;
+}
+
+function ago(iso) {
+  if (!iso) return "never";
+  const s = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
+  return s < 60 ? s + " s ago" : Math.round(s / 60) + " min ago";
+}
+
+async function sendCommand(id, command, args) {
+  const c = cards.get(id);
+  if (c && c.robot && c.robot.e2e) {
+    if (["camera", "mic", "imu_stream", "touch_stream", "light_stream"].includes(command)) {
+      // stream switches stay with the relay (it turns them on while someone watches)
+    } else {
+      return E2E.sendCommand(id, command, args);
+    }
+  }
+  const res = await fetch("/api/robots/" + encodeURIComponent(id) + "/command", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(args ? { command, args } : { command }),
+  });
+  if (!res.ok) throw new Error((await res.text()).trim());
+}
+
+// ping: browser -> server -> robot -> server -> browser. The server reports its
+// own round trip to the robot, so the browser <-> server part is the rest.
+async function pingOnce(robotId) {
+  const id = Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const t0 = performance.now();
+  const answer = new Promise((resolve, reject) => {
+    pendingPings.set(id, { t0, resolve });
+    setTimeout(() => { if (pendingPings.delete(id)) reject(new Error("timeout")); }, 3000);
+  });
+  try {
+    await sendCommand(robotId, "ping", { id });
+  } catch (err) {
+    pendingPings.delete(id);
+    throw err;
+  }
+  return answer;
+}
+
+function stat(values) {
+  const v = [...values].sort((a, b) => a - b);
+  const avg = v.reduce((a, b) => a + b, 0) / v.length;
+  return { min: v[0], med: v[Math.floor(v.length / 2)], avg, max: v[v.length - 1] };
+}
+const ms = (x) => x.toFixed(x < 10 ? 1 : 0) + " ms";
+
+function makeCard(r) {
+  const c = { id: r.id, events: [], seen: new Set() };
+  const has = (cmd) => r.commands.includes(cmd);
+  const status = el("div", { className: "status" });
+  status.setAttribute("role", "status"); // read out when it changes
+  const say = (text) => { status.textContent = text; };
+  // Default browser behaviour: every command (and a picture) also wakes a blank
+  // screen. The robot itself keeps a manual blank until told otherwise; the
+  // "Commands wake the screen" box turns this off. Ping is only a measurement.
+  const NO_WAKE = new Set(["ping", "screensaver", "standby"]);
+  c.wakeOnCommand = el("input", { type: "checkbox", checked: true });
+  const wakeIfBlank = () => {
+    if (has("screensaver") && c.wakeOnCommand.checked && c.blank) {
+      c.blank = false; // don't send twice before the robot reports back
+      sendCommand(c.id, "screensaver", { on: false }).catch(() => {});
+    }
+  };
+  const run = async (command, args, label) => {
+    try {
+      await sendCommand(c.id, command, args);
+      say("Sent " + (label || command));
+      if (!NO_WAKE.has(command)) wakeIfBlank();
+      return true;
+    } catch (err) {
+      say("Failed: " + err.message);
+      return false;
+    }
+  };
+
+  c.dot = el("span", { className: "dot" });
+  c.meta = el("span", { className: "meta" });
+  c.summary = el("div", { className: "summary" }); // the robot at a glance: battery, Wi-Fi, uptime
+  // Panels: each block of readings or controls belongs to one of the robot's parts (PARTS, in
+  // s.i41.eu/s3d's order) and shows in the views that need it (VIEWS): "parts" shows them all,
+  // "in" / "out" by their io, the others when listed in "more". c.layout() places them.
+  c.panels = [];
+  const add = (part, io, more, title, ...nodes) => {
+    const p = { part, io, more: more ? more.split(" ") : [],
+      box: el("div", { className: "panel" }, [title && el("h4", { textContent: title }), ...nodes].filter(Boolean)) };
+    c.panels.push(p);
+    return p;
+  };
+  c.eventsPanel = el("div", { className: "panel events-panel" }, [
+    el("div", { className: "eventshead" }, [el("h4", { textContent: "Events" }), (c.eventFilter = el("select",
+      { className: "select", ariaLabel: "Which events to show" },
+      [["all", "All"], ["robot", "Robot only"], ["sent", "Sent only"]].map(([v, t]) => el("option", { value: v, textContent: t }))))]),
+    (c.eventList = el("ul", { className: "events" })),
+  ]);
+
+  if (has("imu_stream")) {
+    // Raw IMU at 100 Hz over a media socket (imu=1): the server turns the robot's stream on
+    // while at least one browser has it open. Keeps up to 60 s for a CSV download.
+    const imu = { ws: null, samples: [], count: 0, last: null };
+    const live = el("button", { className: "soft", textContent: "Live IMU (100 Hz)" });
+    const csv = el("button", { className: "soft", textContent: "Download CSV", disabled: true });
+    csv.dataset.alwaysDisabled = "1";
+    const out = el("div", { className: "muted stats", style: "white-space:pre-wrap" });
+    const stop = () => {
+      if (imu.ws) { imu.ws.onclose = null; imu.ws.close(); imu.ws = null; }
+      live.textContent = "Live IMU (100 Hz)";
+    };
+    live.onclick = () => {
+      if (imu.ws) { stop(); return; }
+      imu.samples = [];
+      const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/robots/${encodeURIComponent(c.id)}/media?imu=1`);
+      ws.binaryType = "arraybuffer";
+      e2eAttach(ws, c.id);
+      ws.onmessage = (ev) => {
+        const dv = new DataView(ev.data);
+        if (dv.getUint8(0) !== 0x05) return;
+        const n = dv.getUint16(1, true);
+        for (let i = 0; i < n; i++) {
+          const o = 3 + i * 40, s = [dv.getUint32(o, true)];
+          for (let k = 0; k < 9; k++) s.push(dv.getFloat32(o + 4 + k * 4, true));
+          imu.samples.push(s);
+          imu.last = s;
+        }
+        imu.count += n;
+        if (imu.samples.length > 6000) imu.samples.splice(0, imu.samples.length - 6000);
+        csv.disabled = false;
+        delete csv.dataset.alwaysDisabled;
+      };
+      ws.onclose = (ev) => {
+        if (imu.ws !== ws) return;
+        imu.ws = null; live.textContent = "Live IMU (100 Hz)";
+        if (ev.code === 4429) out.textContent = ev.reason; // refused: too many streams open
+      };
+      imu.ws = ws;
+      live.textContent = "Stop live IMU";
+    };
+    csv.onclick = () => {
+      const rows = ["t_ms,ax_mps2,ay_mps2,az_mps2,gx_dps,gy_dps,gz_dps,mx_ut,my_ut,mz_ut", ...imu.samples.map((s) => s.join(","))];
+      const a = el("a", { href: URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv" })), download: `${c.id}-imu.csv` });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+    setInterval(() => {
+      if (!imu.ws) return;
+      const s = imu.last, f = (v) => v.toFixed(2).padStart(7);
+      out.textContent = `${imu.count} samples/s · ${imu.samples.length} kept` + (s ? `\naccel ${f(s[1])} ${f(s[2])} ${f(s[3])} m/s²\ngyro  ${f(s[4])} ${f(s[5])} ${f(s[6])} °/s\nmag   ${f(s[7])} ${f(s[8])} ${f(s[9])} µT` : "");
+      imu.count = 0;
+    }, 1000);
+    add("bmi270", "in", "motion", "Live, 100 samples/s", el("div", { className: "row" }, [live, csv]), out);
+  }
+  if (has("touch_stream")) {
+    // Raw touch points (both fingers, 50 Hz) over a media socket (touch=1), drawn at half size.
+    const tl = { ws: null, frames: 0 };
+    const btn = el("button", { className: "soft", textContent: "Live touch" });
+    const canvas = el("canvas", { width: 160, height: 120, hidden: true,
+      style: "display:block;margin-top:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg)" });
+    const txt = el("div", { className: "muted stats" });
+    const draw = (pts) => {
+      const g = canvas.getContext("2d");
+      g.clearRect(0, 0, 160, 120);
+      pts.forEach(([id, x, y]) => {
+        g.fillStyle = id ? "#ff3d9a" : "#7d8cff";
+        g.beginPath(); g.arc(x / 2, y / 2, 7, 0, 2 * Math.PI); g.fill();
+      });
+      txt.textContent = pts.length ? pts.map(([id, x, y]) => `#${id} ${x},${y}`).join("  ") : "no finger";
+    };
+    btn.onclick = () => {
+      if (tl.ws) { tl.ws.onclose = null; tl.ws.close(); tl.ws = null; btn.textContent = "Live touch"; canvas.hidden = true; txt.textContent = ""; return; }
+      const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/robots/${encodeURIComponent(c.id)}/media?touch=1`);
+      ws.binaryType = "arraybuffer";
+      e2eAttach(ws, c.id);
+      ws.onmessage = (ev) => {
+        const dv = new DataView(ev.data);
+        if (dv.getUint8(0) !== 0x06) return;
+        let o = 3, pts = [];
+        for (let f = dv.getUint16(1, true); f > 0; f--) {
+          const n = dv.getUint8(o + 4); o += 5; pts = [];
+          for (let i = 0; i < n; i++, o += 5) pts.push([dv.getUint8(o), dv.getUint16(o + 1, true), dv.getUint16(o + 3, true)]);
+        }
+        draw(pts); // the newest frame
+      };
+      ws.onclose = (ev) => {
+        if (tl.ws !== ws) return;
+        tl.ws = null; btn.textContent = "Live touch";
+        if (ev.code === 4429) { canvas.hidden = true; txt.textContent = ev.reason; }
+      };
+      tl.ws = ws;
+      btn.textContent = "Stop live touch";
+      canvas.hidden = false;
+    };
+    add("ft6336u", "in", "", "Live, 50 frames/s", el("div", { className: "row" }, [btn]), canvas, txt);
+  }
+  if (has("light_stream")) {
+    // Raw proximity and light (20 samples/s) over a media socket (light=1): the last 10 s
+    // as lines (proximity blue, light CH0 orange, CH1 red), each scaled to its own range.
+    const ls = { ws: null, samples: [], count: 0 };
+    const btn = el("button", { className: "soft", textContent: "Live light & proximity" });
+    const canvas = el("canvas", { width: 320, height: 90, hidden: true,
+      style: "display:block;margin-top:8px;max-width:100%;border:1px solid var(--border);border-radius:8px;background:var(--bg)" });
+    const txt = el("div", { className: "muted stats" });
+    const draw = () => {
+      const g = canvas.getContext("2d"), pts = ls.samples;
+      g.clearRect(0, 0, 320, 90);
+      [[1, "#3f7be0"], [2, "#f5a300"], [3, "#e53935"]].forEach(([k, color]) => {
+        const vals = pts.map((p) => p[k]), lo = Math.min(...vals), hi = Math.max(...vals, lo + 1);
+        g.strokeStyle = color; g.lineWidth = 1.5; g.beginPath();
+        vals.forEach((v, i) => { const x = (i / 199) * 320, y = 84 - ((v - lo) / (hi - lo)) * 78; i ? g.lineTo(x, y) : g.moveTo(x, y); });
+        g.stroke();
+      });
+    };
+    const stop = () => {
+      if (ls.ws) { ls.ws.onclose = null; ls.ws.close(); ls.ws = null; }
+      btn.textContent = "Live light & proximity"; canvas.hidden = true; txt.textContent = "";
+    };
+    btn.onclick = () => {
+      if (ls.ws) { stop(); return; }
+      ls.samples = [];
+      const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/robots/${encodeURIComponent(c.id)}/media?light=1`);
+      ws.binaryType = "arraybuffer";
+      e2eAttach(ws, c.id);
+      ws.onmessage = (ev) => {
+        const dv = new DataView(ev.data);
+        if (dv.getUint8(0) !== 0x08) return;
+        const n = dv.getUint16(1, true);
+        for (let i = 0, o = 3; i < n; i++, o += 10) {
+          ls.samples.push([dv.getUint32(o, true), dv.getUint16(o + 4, true), dv.getUint16(o + 6, true), dv.getUint16(o + 8, true)]);
+        }
+        ls.count += n;
+        if (ls.samples.length > 200) ls.samples.splice(0, ls.samples.length - 200);
+        draw();
+      };
+      ws.onclose = (ev) => { if (ls.ws === ws) { stop(); if (ev.code === 4429) txt.textContent = ev.reason; } };
+      ls.ws = ws;
+      btn.textContent = "Stop live light";
+      canvas.hidden = false;
+    };
+    setInterval(() => {
+      if (!ls.ws) return;
+      const s = ls.samples[ls.samples.length - 1];
+      txt.textContent = `${ls.count} samples/s` + (s ? ` · proximity ${s[1]} · light CH0 ${s[2]} · CH1 ${s[3]}` : "");
+      ls.count = 0;
+    }, 1000);
+    add("ltr553", "in", "lights", "Live, 20 samples/s", el("div", { className: "row" }, [btn]), canvas, txt);
+  }
+
+  if (has("screensaver")) {
+    add("ili9342", "out", "robot", "Screensaver", el("div", { className: "row" }, [
+      el("button", { className: "soft", textContent: "On", onclick: () => run("screensaver", { on: true }, "screensaver on") }),
+      el("button", { className: "soft", textContent: "Off", onclick: () => run("screensaver", { on: false }, "screensaver off") }),
+    ]), el("label", { className: "check muted" }, [c.wakeOnCommand, "Commands wake the screen"]));
+  }
+  if (has("standby")) {
+    const minutes = el("select", { className: "select", ariaLabel: "Standby minutes" },
+      [1, 5, 15, 30, 60].map((m) => el("option", { value: m, textContent: m + " min", selected: m === 5 })));
+    add("robot", "out", "robot", "Standby", el("div", { className: "row" }, [el("button", { className: "soft", textContent: "Standby",
+      onclick: () => run("standby", { minutes: +minutes.value }, `standby for ${minutes.value} min`) }), minutes]),
+    el("div", { className: "muted small",
+      textContent: "The robot goes offline with its screen off and comes back after the time, or when someone touches it." }));
+  }
+
+  if (has("server_switch")) {
+    // The robot's apps (from its "servers" event; tokens never leave the robot). Its managers add,
+    // remove and pin them (m.i41.eu, or a home's own manager): an app only suggests a switch,
+    // which the robot asks on its screen.
+    const list = el("div");
+    c.onServers = (d) => {
+      let servers = [];
+      try { servers = JSON.parse(d.list || "[]"); } catch { /* keep empty */ }
+      list.replaceChildren(...servers.filter((sv) => sv.url).map((sv) => {
+        const current = sv.url === d.current, dflt = sv.url === d.default;
+        const tags = [current && "here now", dflt && "start app"].filter(Boolean).join(" · ");
+        return el("div", { className: "row", style: "margin-top:6px" }, [
+          el("span", { style: "min-width:120px", textContent: sv.name }),
+          el("span", { className: "muted", style: "font-size:0.85rem", textContent: sv.url + (tags ? ` (${tags})` : "") }),
+          !current && el("button", { className: "soft", textContent: "Switch", onclick: () => {
+            if (confirm(`Switch ${c.id} to ${sv.name}? It leaves this app; the robot asks on its screen.`)) run("server_switch", { server: sv.url }, "switch to " + sv.name);
+          } }),
+        ].filter(Boolean));
+      }));
+    };
+    const mgr = el("a", { className: "mgr", target: "_blank", rel: "noopener", textContent: "its manager", hidden: !managerURL,
+      href: managerURL ? managerURL + "/" : "#" });
+    add("robot", "", "robot", "Apps", list,
+      el("div", { className: "muted small" }, [
+        "The robot's apps are added, removed and pinned on ", mgr,
+        " (they are not this app's to change). On the robot, its app switcher (the QR screen) switches apps with Next and Connect."]));
+  }
+
+  if (has("assets")) {
+    // The robot's file store (pictures and sounds for apps, ~1.9 MB): the list comes from its
+    // "assets" event; uploads go to the server, which sends them to the robot in chunks.
+    const list = el("div");
+    const space = el("div", { className: "muted", style: "font-size:0.85rem" });
+    const log = el("div", { className: "muted", style: "font-size:0.85rem;white-space:pre-wrap;margin-top:6px" });
+    const folder = el("input", { className: "code", style: "width:140px", placeholder: "folder (optional)", ariaLabel: "Folder" });
+    const pick = el("input", { type: "file", multiple: true, ariaLabel: "Files to upload" });
+    const pending = {}; // name -> CRC-32 of what was sent, checked against the robot's
+    const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+    const crc32 = (buf) => { let c = 0xFFFFFFFF; for (const b of new Uint8Array(buf)) c = crcTable[(c ^ b) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+    const kb = (n) => (n / 1024).toFixed(n < 10240 ? 1 : 0) + " KB";
+    const note = (text) => { log.textContent = (text + "\n" + log.textContent).split("\n").slice(0, 8).join("\n"); };
+    const summary = el("span", { className: "muted", textContent: "…" });
+    // Pictures with their own background must not land on each other: with the box ticked, Show
+    // blacks out the screen (no face, no other sprites) and puts the picture in the middle.
+    // Without it, small ones with transparency (a heart) go over whatever is on the screen.
+    const onBlack = el("input", { type: "checkbox", checked: true });
+    const show = async (name) => {
+      const id = name.slice(-16);
+      if (onBlack.checked && has("image")) {
+        await run("sprite_clear", {}, "hide sprites");
+        const res = await fetch(`/api/robots/${encodeURIComponent(c.id)}/picture`,
+          { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: await blackJpeg() });
+        if (!res.ok) { note(`black background: ${(await res.text()).trim()}`); return; }
+        run("sprite", { id, asset: name, x: 160, y: 120, scale: 1 }, `show ${name} on black`);
+        return;
+      }
+      // over the face at a random place, gliding in from the middle
+      await run("sprite", { id, asset: name, x: 160, y: 120, scale: 1 }, "show " + name);
+      run("sprite", { id, x: 60 + Math.round(Math.random() * 200), y: 50 + Math.round(Math.random() * 140), ms: 600 }, "move " + name);
+    };
+    c.onAssets = (d) => {
+      let files = [];
+      try { files = JSON.parse(d.list || "{}").files || []; } catch { /* keep empty */ }
+      space.textContent = d.mounted === 0 ? "No file store on the robot (partition not mounted)."
+        : `${files.length} files · ${kb(d.free || 0)} free of ${kb(d.total || 0)}`;
+      summary.textContent = space.textContent;
+      list.replaceChildren(...files.sort((a, b) => a.name.localeCompare(b.name)).map((f) => el("div", { className: "row", style: "margin-top:4px" }, [
+        el("span", { className: "code", style: "min-width:180px", textContent: f.name }),
+        el("span", { className: "muted", style: "font-size:0.85rem", textContent: `${kb(f.bytes)} · crc ${f.crc.toString(16).padStart(8, "0")}` }),
+        /\.(png|jpe?g)$/i.test(f.name) && has("sprite") && el("button", { className: "soft", textContent: "Show", onclick: () => show(f.name) }),
+        /\.wav$/i.test(f.name) && has("play") && el("button", { className: "soft", textContent: "Play", onclick: () => run("play", { asset: f.name }, "play " + f.name) }),
+        el("button", { className: "soft", textContent: "Delete", onclick: () => { if (confirm(`Delete ${f.name} on the robot?`)) run("asset_delete", { name: f.name }, "delete " + f.name); } }),
+      ].filter(Boolean))));
+    };
+    c.onAssetEvent = (name, d) => {
+      if (name === "asset_saved") {
+        const want = pending[d.name];
+        delete pending[d.name];
+        note(`${d.name}: saved, ${kb(d.bytes)}` + (want === undefined ? "" : want === d.crc ? ", CRC matches ✓" : ", CRC DIFFERS ✗"));
+      } else if (name === "asset_error") {
+        delete pending[d.name];
+        note(`${d.name || "?"}: ${d.reason}`);
+      }
+      run("assets", {}, "list files");
+    };
+    const upload = async () => {
+      const dir = folder.value.trim().replace(/^\/+|\/+$/g, "");
+      for (const file of pick.files) {
+        const name = (dir ? dir + "/" : "") + file.name.replace(/[^A-Za-z0-9._-]/g, "_");
+        const buf = await file.arrayBuffer();
+        pending[name] = crc32(buf);
+        note(`${name}: sending ${kb(buf.byteLength)}…`);
+        const res = await fetch(`/api/robots/${encodeURIComponent(c.id)}/assets?name=${encodeURIComponent(name)}`,
+          { method: "POST", headers: { "X-Stackchan-Upload": "1", "Content-Type": "application/octet-stream" }, body: buf });
+        if (!res.ok) { delete pending[name]; note(`${name}: ${(await res.text()).trim()}`); }
+      }
+      pick.value = "";
+    };
+    // The list has its own view (#files/<robot>): in the card only a line and a link.
+    c.filesView = el("section", { className: "card" }, [el("h2", { textContent: "Files" }), space,
+      el("div", { className: "row", style: "margin-top:10px" }, [folder, pick,
+        el("button", { className: "soft", textContent: "Upload", onclick: upload }),
+        el("button", { className: "soft", textContent: "Refresh", onclick: () => run("assets", {}, "list files") }),
+        has("sprite") && el("button", { className: "soft", textContent: "Hide sprites", onclick: () => run("sprite_clear", {}, "hide sprites") })].filter(Boolean)),
+      has("sprite") && has("image") && el("label", { className: "check muted" }, [onBlack, "Show on a black background (unticked: over what is on the screen)"]),
+      log,
+      el("div", { className: "muted", style: "font-size:0.85rem;margin-top:6px",
+        textContent: "Pictures (PNG with transparency, JPEG) and sounds (WAV, 16-bit PCM) for apps, kept on the robot across reboots. Names: letters, digits, . _ - and / for folders." }),
+      list].filter(Boolean));
+    add("robot", "", "robot", "Files", el("div", { className: "row" }, [summary,
+      el("a", { href: "#files/" + encodeURIComponent(c.id), textContent: "Manage files" })]));
+    c.refreshFiles = () => run("assets", {}, "list files");
+    setTimeout(() => run("assets", {}, "list files"), 500);
+  }
+
+  if (has("nfc")) {
+    const nfc = add("st25r3916", "in", "", "", el("div", { className: "row" }, [
+      el("button", { className: "soft", textContent: "Reader on", onclick: () => run("nfc", { on: true }, "NFC reader on") }),
+      el("button", { className: "soft", textContent: "Reader off", onclick: () => run("nfc", { on: false }, "NFC reader off") }),
+    ]), el("div", { className: "muted", style: "font-size:0.85rem;margin-top:6px",
+      textContent: "Hold a tag or card near the robot: it shows up under Events, with the link or text stored on NTAG stickers." }));
+    // Raw memory of the last Type 2 tag (NTAG, Ultralight): 4 bytes per page.
+    const dump = el("pre", { className: "muted", style: "font-size:0.8rem;overflow-x:auto;margin:8px 0 0", hidden: true });
+    c.onNfc = (d) => {
+      if (!d.mem) return;
+      const lines = [];
+      for (let i = 0; i < d.mem.length; i += 8) lines.push(`page ${String(i / 8).padStart(3)}  ${d.mem.slice(i, i + 8).match(/../g).join(" ")}`);
+      dump.textContent = `Last tag ${d.uid}, ${d.mem.length / 2} bytes:\n` + lines.join("\n");
+      dump.hidden = false;
+    };
+    nfc.box.append(dump);
+  }
+
+  if (has("ping")) {
+    c.pingStats = el("div", { className: "stats muted", textContent: "Measures browser → server → robot and back." });
+    const btn = el("button", { textContent: "Ping ×10", className: "soft" });
+    c.pingBtn = btn;
+    btn.onclick = async () => {
+      c.pinging = true;
+      btn.disabled = true;
+      const total = [], robot = [], queue = [];
+      let lost = 0;
+      for (let i = 0; i < 10; i++) {
+        try {
+          const p = await pingOnce(c.id);
+          total.push(p.total); robot.push(p.server_robot_ms); queue.push(p.robot_queue_ms);
+          c.pingStats.textContent = `${total.length}/10 · last ${ms(p.total)}`;
+        } catch (err) {
+          lost++;
+          if (err.message !== "timeout") { say("Ping failed: " + err.message); break; }
+        }
+        await new Promise((r) => setTimeout(r, 150));
+      }
+      if (total.length) {
+        const t = stat(total), s = stat(robot), q = stat(queue);
+        c.pingStats.replaceChildren(
+          el("div", { textContent: `Round trip: median ${ms(t.med)} · min ${ms(t.min)} · max ${ms(t.max)}` + (lost ? ` · ${lost} lost` : "") }),
+          el("div", { textContent: `Browser ↔ server ≈ ${ms(Math.max(0, t.med - s.med))} · server ↔ robot ${ms(s.med)} · robot loop ${ms(q.med)}` }),
+        );
+      }
+      c.pinging = false;
+      btn.disabled = !c.robot.online;
+    };
+    add("esp32s3", "in", "robot", "Latency", el("div", { className: "row" }, [btn]), c.pingStats);
+  }
+
+  if (has("view")) {
+    // The robot's own screen under pictures: its readings (Raw data's view) or its face.
+    add("ili9342", "out", "", "What it shows", el("div", { className: "row" }, [
+      el("button", { className: "soft", textContent: "Readings", onclick: () => run("view", { name: "readings" }, "readings screen") }),
+      el("button", { className: "soft", textContent: "Face", onclick: () => run("view", { name: "face" }, "face") }),
+    ]), el("div", { className: "muted small", textContent: "Readings: the robot draws its own sensors, its LEDs and the last input on its screen (this app's start screen)." }));
+  }
+  if (has("emotion") || has("say")) {
+    const face = add("ili9342", "out", "", "Face");
+    if (has("emotion")) {
+      face.box.append(el("div", { className: "row" }, EMOTIONS.map((name) =>
+        el("button", { className: "soft", textContent: name, onclick: () => run("emotion", { name }, name) }))));
+    }
+    if (has("say")) {
+      const input = el("input", { type: "text", placeholder: "Say something…", maxLength: 80 });
+      const go = () => { if (input.value.trim()) { run("say", { text: input.value.trim(), seconds: 6 }, "say"); input.value = ""; } };
+      input.onkeydown = (e) => { if (e.key === "Enter") go(); };
+      face.box.append(el("div", { className: "row", style: "margin-top:8px" }, [input, el("button", { textContent: "Say", onclick: go })]));
+    }
+  }
+
+  // A slider with −/+ chips. It holds the value the user chose ("target") and
+  // shows the robot's reported value as "now …"; it follows the robot again
+  // only after a few seconds without user input (servos need time to arrive).
+  const slider = (label, min, max, key, unit, onValue, { live = false, steps = [], showNow = false } = {}) => {
+    const input = el("input", { type: "range", min, max, value: Math.round((min + max) / 2), ariaLabel: label });
+    const value = el("span", { className: "axis-value", textContent: input.value + unit });
+    const now = el("span", { className: "muted" });
+    const s = { input, value, now, unit, touched: 0, showNow };
+    let timer = 0;
+    const set = (v, send) => {
+      v = Math.max(min, Math.min(max, Math.round(v)));
+      input.value = v;
+      value.textContent = v + unit;
+      s.touched = Date.now();
+      if (send) { clearTimeout(timer); timer = setTimeout(() => onValue(v), 120); }
+    };
+    input.oninput = () => set(+input.value, live);
+    input.onchange = () => set(+input.value, true);
+    const chip = (step) => el("button", { className: "chip", textContent: (step > 0 ? "+" : "−") + Math.abs(step),
+      ariaLabel: `${label} ${step > 0 ? "+" : "−"}${Math.abs(step)}${unit}`, onclick: () => set(+input.value + step, true) });
+    c.sliders = c.sliders || {};
+    c.sliders[key] = s;
+    return el("div", { className: "axis" }, [
+      el("div", { className: "axis-head" }, [el("span", { textContent: label }), el("span", {}, [value, " ", now])]),
+      el("div", { className: "axis-row" }, [
+        ...steps.filter((x) => x < 0).map(chip), input, ...steps.filter((x) => x > 0).map(chip),
+      ]),
+    ]);
+  };
+
+  if (has("leds")) {
+    // One colour paints all 12 LEDs (and is the effects' colour); Random and Off
+    // paint them too. The single-LED pickers below always show what was sent.
+    const color = el("input", { type: "color", value: "#7d8cff", title: "Colour for all LEDs and for effects" });
+    const pixels = Array.from({ length: 12 }, (_, i) => el("input", { type: "color", value: "#000000", className: "pixel", title: "LED " + i }));
+    const sendPixels = (label) => run("leds", { pixels: pixels.map((p) => p.value) }, label || "single LEDs");
+    const paint = (colorOf, label) => { pixels.forEach((p, i) => { p.value = colorOf(i); }); sendPixels(label); };
+    const randomColor = () => {
+      // A random hue at full saturation, so every LED is clearly lit.
+      const h = Math.random() * 6, f = h - Math.floor(h), q = Math.round(255 * (1 - f)), t = Math.round(255 * f);
+      const rgb = [[255, t, 0], [q, 255, 0], [0, 255, t], [0, q, 255], [t, 0, 255], [255, 0, q]][Math.floor(h)];
+      return "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
+    };
+    color.onchange = () => paint(() => color.value, "all LEDs " + color.value);
+    pixels.forEach((p) => { p.onchange = () => sendPixels(); });
+
+    // Effects run on the robot (25 fps there), so nothing streams over the network.
+    const speed = el("select", { className: "select", ariaLabel: "Effect speed" },
+      [["0.5", "Slow"], ["1", "Normal"], ["2", "Fast"]].map(([v, t]) => el("option", { value: v, textContent: t, selected: v === "1" })));
+    const fx = (name) => run("leds", { effect: name, color: color.value, speed: +speed.value }, name + " LEDs");
+
+    add("rgb-leds", "out", "lights", "",
+      el("div", { className: "row" }, [
+        el("span", { className: "muted", textContent: "All" }), color,
+        el("button", { className: "soft", textContent: "Random", onclick: () => paint(randomColor, "random LEDs") }),
+        el("button", { className: "soft", textContent: "Off", onclick: () => paint(() => "#000000", "LEDs off") }),
+      ]),
+      el("div", { className: "row", style: "margin-top:8px" }, [
+        ...["rainbow", "breathe", "chase", "blink"].map((n) =>
+          el("button", { className: "soft", textContent: n[0].toUpperCase() + n.slice(1), onclick: () => fx(n) })),
+        speed,
+      ]),
+      el("div", { className: "muted small", style: "margin-top:10px", textContent: "Single LEDs, as you face the screen: the left strip 0–5 from the screen end back, the right strip 6–11 from the back to the screen end" }),
+      el("div", { className: "row pixels" }, [el("span", { className: "muted small", textContent: "left" }), ...pixels.slice(0, 6)]),
+      el("div", { className: "row pixels" }, [el("span", { className: "muted small", textContent: "right" }), ...pixels.slice(6)]));
+    if (has("power_led")) {
+      add("axp2101", "out", "lights", "Power LED", el("div", { className: "row" }, [
+        ...[["On", "on"], ["Blink", "blink"], ["Fast", "fast"], ["Off", "off"], ["Charging", "charging"]].map(([label, mode]) =>
+          el("button", { className: "soft", textContent: label, title: mode === "charging" ? "Lit while charging, like the default firmware" : "",
+            onclick: () => run("power_led", { mode }, "power LED " + mode) })),
+      ]));
+    }
+  }
+
+  if (has("ir_send")) {
+    // Infrared: what the robot received can be sent again or saved as a button.
+    // Saved codes live in this browser (localStorage), per robot.
+    const storeKey = "stackchan-ir-" + c.id;
+    const load = () => { try { return JSON.parse(localStorage.getItem(storeKey)) || []; } catch { return []; } };
+    const store = (codes) => { try { localStorage.setItem(storeKey, JSON.stringify(codes)); } catch { /* private mode */ } };
+    // Hold: like keeping the remote's button pressed. NEC gets repeat codes every 108 ms,
+    // raw codes are sent again every ~110 ms. Some receivers ignore a single short frame.
+    const hold = el("select", { className: "select", ariaLabel: "How long to hold the button" },
+      [["0", "Tap"], ["4", "Hold 0.5 s"], ["9", "Hold 1 s"], ["18", "Hold 2 s"]].map(([v, t]) =>
+        el("option", { value: v, textContent: t, selected: v === "4" })));
+    // Send 3x: the whole frame three times, for a weak link. A toggle button may then toggle twice.
+    const thrice = el("input", { type: "checkbox" });
+    const irSend = (code, label) => run("ir_send",
+      { ...(code.raw ? { raw: code.raw } : { address: code.address, command: code.command }), repeat: +hold.value,
+        frames: thrice.checked ? 3 : 1 }, label);
+    const last = el("div", { className: "muted", textContent: "Point a remote at the robot and press a button." });
+    const lastRow = el("div", { className: "row", hidden: true, style: "margin-top:6px" });
+    const saved = el("div", { className: "row", style: "margin-top:8px" });
+    const renderSaved = () => saved.replaceChildren(...load().map((code, i) => el("span", { className: "irsaved" }, [
+      el("button", { className: "soft", textContent: code.name,
+        title: code.raw ? "raw code" : `NEC ${hex(code.address)} / ${hex(code.command)}`, onclick: () => irSend(code, "IR " + code.name) }),
+      el("button", { className: "soft", textContent: "✕", title: "Forget " + code.name,
+        onclick: () => { const codes = load(); codes.splice(i, 1); store(codes); renderSaved(); } }),
+    ])));
+    c.onIr = (d) => {
+      const nec = d.protocol === "nec";
+      if (c.irSelfTest && nec && d.address === 0xEE && d.command === 0x11) {
+        c.irSelfTest.ok = true;
+        last.textContent = "Self-test OK: the robot heard its own 38 kHz signal, so the transmitter works. " +
+          "If a device does not react, point the top of the robot (the IR LED) at it from closer.";
+        return;
+      }
+      const code = nec ? { address: d.address, command: d.command } : { raw: d.raw };
+      last.textContent = "Last received: " + (nec ? `NEC address ${hex(d.address)}, command ${hex(d.command)}`
+        : `raw, ${(d.raw || "").split(",").length} timings`);
+      if (nec && c.fillNec) c.fillNec(d.address, d.command);
+      lastRow.hidden = false;
+      lastRow.replaceChildren(
+        el("button", { className: "soft", textContent: "Send again", onclick: () => irSend(code, "IR code again") }),
+        el("button", { className: "soft", textContent: "Save…", onclick: () => {
+          const name = prompt("Name for this button", nec ? "NEC " + hex(d.command) : "IR code");
+          if (!name) return;
+          store([...load(), { name, ...code }]);
+          renderSaved();
+        } }));
+    };
+    // NEC by hand: address/command (hex like 0x80 or decimal), filled in by the last received code;
+    // "Add to list" saves them under a name as another button.
+    const addr = el("input", { className: "code", value: "0x00", ariaLabel: "NEC address" });
+    const cmd = el("input", { className: "code", value: "0x00", ariaLabel: "NEC command" });
+    const name = el("input", { className: "code", style: "width:150px", placeholder: "Name, e.g. Power", ariaLabel: "Name for the code" });
+    const necCode = () => ({ address: Number(addr.value) || 0, command: Number(cmd.value) || 0 });
+    c.fillNec = (address, command) => { addr.value = hex(address); cmd.value = hex(command); };
+    add("ir", "", "", "", last, lastRow, saved,
+      el("div", { className: "row", style: "margin-top:8px" }, [
+        el("span", { className: "muted", textContent: "NEC address / command" }), addr, cmd,
+        el("button", { className: "soft", textContent: "Send", onclick: () => irSend(necCode(), "IR NEC") }), hold,
+        el("label", { className: "check muted", style: "margin-top:0", title: "Sends the whole code 3 times, 108 ms apart. A button that toggles may toggle twice." },
+          [thrice, "Send 3×"]),
+      ]),
+      el("div", { className: "row", style: "margin-top:8px" }, [
+        name,
+        el("button", { className: "soft", textContent: "Add to list", onclick: () => {
+          const code = necCode();
+          store([...load(), { name: name.value.trim() || `NEC ${hex(code.address)}/${hex(code.command)}`, ...code }]);
+          name.value = "";
+          renderSaved();
+        } }),
+      ]),
+      el("div", { className: "row", style: "margin-top:8px" }, [
+        // 3 s of 38 kHz light (three 1 s marks): long enough to see the LED through a phone camera.
+        el("button", { className: "soft", textContent: "Test LED (3 s)",
+          onclick: () => run("ir_send", { raw: "1000000,50000,1000000,50000,1000000" }, "IR LED test: look through a phone camera") }),
+        // The robot sends NEC 0xEE/0x11 and listens for its own reflection: proves carrier and timing.
+        el("button", { className: "soft", textContent: "Self-test", onclick: async () => {
+          c.irSelfTest = { ok: false };
+          last.textContent = "Self-test: sending… (a hand or a wall 10–30 cm in front of the robot helps)";
+          await run("ir_send", { address: 0xEE, command: 0x11, loopback: true }, "IR self-test");
+          setTimeout(() => {
+            if (c.irSelfTest && !c.irSelfTest.ok) {
+              last.textContent = "Self-test: the robot did not hear itself. Hold a hand or white paper 10–30 cm in front of it and try again.";
+            }
+            c.irSelfTest = null;
+          }, 2500);
+        } }),
+        el("span", { className: "muted small", textContent: "The IR LED is on top of the robot, near the display unit: point the top at the device. (The LED blinking next to the camera is the proximity sensor; it can be switched off under Light and proximity.)" }),
+      ]));
+    renderSaved();
+  }
+
+  {
+    const setting = { steps: [-10, 10] };
+    if (has("volume")) {
+      add("aw88298", "out", "av", "", el("div", { className: "axes" },
+        [slider("Volume", 0, 100, "volume_pct", "%", (v) => run("volume", { value: v }, "volume"), setting)]));
+    }
+    if (has("brightness")) {
+      const bright = add("ili9342", "out", "lights", "Backlight", el("div", { className: "axes" },
+        [slider("Brightness", 1, 100, "brightness_pct", "%", (v) => run("brightness", { value: v }, "brightness"), setting)]));
+      // Shown once the robot reports auto_brightness (it has a light sensor). Moving
+      // the slider sets brightness by hand, which the robot treats as "auto off".
+      c.autoBright = el("input", { type: "checkbox" });
+      c.autoBright.onchange = () => {
+        c.autoTouched = Date.now();
+        run("brightness", { auto: c.autoBright.checked }, "auto brightness " + (c.autoBright.checked ? "on" : "off"));
+      };
+      bright.box.append(c.autoLabel = el("label", { className: "check muted", hidden: true }, [c.autoBright, "Auto brightness from the room light"]));
+    }
+    if (has("proximity")) {
+      // The proximity sensor's IR LED (next to the camera) pulses ~10x/s; switch it off e.g. while using IR.
+      c.proxBox = el("input", { type: "checkbox", checked: true });
+      c.proxBox.onchange = () => {
+        c.proxTouched = Date.now();
+        run("proximity", { on: c.proxBox.checked }, "proximity sensor " + (c.proxBox.checked ? "on" : "off"));
+      };
+      add("ltr553", "out", "lights", "", c.proxLabel = el("label", { className: "check muted", hidden: true },
+        [c.proxBox, "Proximity sensor (its IR LED next to the camera blinks ~10×/s)"]));
+    }
+  }
+
+  if (has("sticker") || has("image") || has("face")) {
+    const pics = add("ili9342", "out", "", "Pictures and stickers");
+    if (has("sticker")) {
+      pics.box.append(el("div", { className: "row" }, STICKERS.map((name) =>
+        el("button", { className: "soft", textContent: name, onclick: () => run("sticker", { name, seconds: 4 }, name) }))));
+    }
+    const row = [];
+    if (has("image")) {
+      const sendPicture = async (makeJpeg, label) => {
+        try {
+          say("Sending " + label + "…");
+          const jpeg = await makeJpeg();
+          const res = await fetch("/api/robots/" + encodeURIComponent(c.id) + "/picture", {
+            method: "POST", headers: { "Content-Type": "image/jpeg" }, body: jpeg,
+          });
+          say(res.ok ? `Sent ${label} (${Math.round(jpeg.size / 1024)} KB)` : "Failed: " + (await res.text()).trim());
+          if (res.ok) wakeIfBlank();
+        } catch (err) {
+          say("Failed: " + err.message);
+        }
+      };
+      pics.box.append(el("div", { className: "row emojis", style: "margin-top:8px" }, EMOJIS.map((name) =>
+        el("button", { className: "soft", title: name, ariaLabel: name, onclick: () => sendPicture(() => emojiJpeg(name), name) },
+          [el("img", { src: "/emoji/" + name + ".svg", alt: "" })]))));
+      const file = el("input", { type: "file", accept: "image/*", hidden: true });
+      file.onchange = async () => {
+        if (file.files.length) await sendPicture(() => toJpeg320(file.files[0]), "picture");
+        file.value = "";
+      };
+      row.push(file, el("button", { textContent: "Send picture", onclick: () => file.click() }));
+    }
+    if (has("face")) row.push(el("button", { className: "soft", textContent: "Take the picture away", onclick: () => run("face", undefined, "picture away") }));
+    if (row.length) pics.box.append(el("div", { className: "row", style: "margin-top:8px" }, row));
+  }
+
+  if (has("camera") || has("mic")) {
+    const media = { ws: null, video: false, audio: false, frames: 0, bytes: 0, audioCtx: null, playAt: 0, lastUrl: "",
+      lastVideoAt: 0, lastAudioAt: 0, openedAt: 0 };
+    const img = el("img", { alt: "Robot camera", hidden: true,
+      style: "width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#000;margin-top:8px" });
+    const info = el("div", { className: "muted stats" });
+    const watch = el("button", { className: "soft", textContent: "Watch" });
+    // The stream's size; 640x480 is about four times the data (one size for all watchers).
+    const vsize = el("select", { className: "select", ariaLabel: "Video size" },
+      [["320x240", "320×240"], ["640x480", "640×480"]].map(([v, t]) => el("option", { value: v, textContent: t, className: v === "640x480" ? "full-video" : "" })));
+    if (document.body.dataset.noFullVideo) vsize.options[1].disabled = true; // a robot shown after /api/me answered
+    const listen = el("button", { className: "soft", textContent: "Listen" });
+    for (const e of [watch, vsize, listen]) e.dataset.privacy = "1"; // greyed while off on the robot
+    // Audio message: uint16 LE sample rate, then s16le mono PCM.
+    // Audio: 0x02 = rate + mono PCM; 0x04 = rate + channel count + interleaved PCM of
+    // all codec channels: 1 is the microphone, 0 the speaker reference (what the robot
+    // plays, looped back for echo cancellation). Pick which one to hear.
+    const chanSel = el("select", { className: "select", ariaLabel: "Microphone channel", hidden: true },
+      [["1", "Microphone"], ["0", "Speaker reference"]].map(([v, t]) => el("option", { value: v, textContent: t })));
+    chanSel.dataset.privacy = "1";
+    const playPcm = (u8, channels = 1, header = 2) => {
+      const rate = u8[0] | (u8[1] << 8);
+      const pcm = new Int16Array(u8.slice(header).buffer);  // copy: Int16Array needs 2-byte alignment
+      if (!rate || !pcm.length) return;
+      const frames = Math.floor(pcm.length / channels);
+      const stereo = false; // "both" was only useful for telling the channels apart
+      const pick = channels > 1 && !stereo ? Math.min(+chanSel.value, channels - 1) : 0;
+      const buf = media.audioCtx.createBuffer(stereo ? 2 : 1, frames, rate);
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const out = buf.getChannelData(c), from = stereo ? c : pick;
+        for (let i = 0; i < frames; i++) out[i] = pcm[i * channels + from] / 32768;
+      }
+      const src = media.audioCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(media.audioCtx.destination);
+      const now = media.audioCtx.currentTime;
+      // ~100 ms jitter buffer; resync when starved or when lagging too far behind
+      if (media.playAt < now + 0.02 || media.playAt > now + 0.6) media.playAt = now + 0.1;
+      src.start(media.playAt);
+      media.playAt += buf.duration;
+    };
+
+    const reopen = () => {
+      if (media.ws) { media.ws.onclose = null; media.ws.close(); media.ws = null; }
+      watch.textContent = media.video ? "Stop video" : "Watch";
+      listen.textContent = media.audio ? "Stop audio" : "Listen";
+      img.hidden = !media.video;
+      if (!media.video && !media.audio) { info.textContent = ""; return; }
+      const q = `video=${media.video ? 1 : 0}&size=${vsize.value}&audio=${media.audio ? 1 : 0}`;
+      const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/robots/${encodeURIComponent(c.id)}/media?${q}`);
+      ws.binaryType = "arraybuffer";
+      e2eAttach(ws, c.id);
+      ws.onmessage = (ev) => {
+        const u8 = new Uint8Array(ev.data);
+        media.bytes += u8.length;
+        if (u8[0] === 0x01) {
+          media.frames++;
+          media.lastVideoAt = Date.now();
+          const url = URL.createObjectURL(new Blob([u8.subarray(1)], { type: "image/jpeg" }));
+          img.src = url;
+          if (media.lastUrl) URL.revokeObjectURL(media.lastUrl);
+          media.lastUrl = url;
+        } else if (u8[0] === 0x02 && media.audioCtx) {
+          media.lastAudioAt = Date.now();
+          playPcm(u8.subarray(1));
+        } else if (u8[0] === 0x04 && media.audioCtx) {
+          media.lastAudioAt = Date.now();
+          chanSel.hidden = false;
+          playPcm(u8.subarray(1), u8[3] || 1, 3);
+        }
+      };
+      // Phones drop sockets when the screen sleeps or the tab is in the background:
+      // reconnect while video or audio is still wanted.
+      ws.onclose = (ev) => {
+        if (media.ws !== ws) return;
+        if (ev.code === 4429) { // refused: too many streams open; trying again would not help
+          media.ws = null; media.video = media.audio = false;
+          reopen();
+          info.textContent = ev.reason;
+          return;
+        }
+        info.textContent = "Stream closed, reconnecting…";
+        setTimeout(() => { if (media.ws === ws) reopen(); }, 2000);
+      };
+      media.ws = ws;
+      media.openedAt = media.lastVideoAt = media.lastAudioAt = Date.now();
+      info.textContent = "Waiting for the robot…";
+    };
+    const startAudio = () => {
+      if (media.audio && media.audioCtx && media.audioCtx.state !== "running") media.audioCtx.resume().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) return;
+      startAudio();
+      if ((media.video || media.audio) && (!media.ws || media.ws.readyState > WebSocket.OPEN)) reopen();
+    });
+    info.onclick = startAudio; // the browser may keep audio paused until a tap
+    watch.onclick = () => { media.video = !media.video; reopen(); };
+    listen.onclick = () => {
+      media.audio = !media.audio;
+      if (media.audio && !media.audioCtx) {
+        media.audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "playback" });
+      }
+      if (media.audio) {
+        // Mobile browsers start audio only from a tap: resume and play one silent sample right here.
+        media.audioCtx.resume().catch(() => {});
+        const silent = media.audioCtx.createBufferSource();
+        silent.buffer = media.audioCtx.createBuffer(1, 1, 22050);
+        silent.connect(media.audioCtx.destination);
+        silent.start();
+      }
+      reopen();
+    };
+    setInterval(() => {
+      // Off on the robot itself (its Manager screen, or USB): no app can turn them on.
+      if (c.robot && c.robot.telemetry && c.robot.telemetry.camera_mic_off > 0) {
+        if (media.video || media.audio) { media.video = media.audio = false; reopen(); } // the robot stopped them
+        info.textContent = "🔒 Camera and microphone are off on the robot" + (c.privacyReason && c.privacyReason !== "off on the robot" ? ` (${c.privacyReason})` : "") +
+          ": only the robot's Manager screen or a USB setup turns them on.";
+        media.frames = media.bytes = 0;
+        return;
+      }
+      if (media.ws && media.ws.readyState === WebSocket.OPEN) {
+        const now = Date.now(), notes = [];
+        if (media.video && now - media.lastVideoAt > 5000) notes.push(`no video for ${Math.round((now - media.lastVideoAt) / 1000)} s`);
+        if (media.audio && now - media.lastAudioAt > 5000) notes.push(`no audio for ${Math.round((now - media.lastAudioAt) / 1000)} s`);
+        if (media.audio && media.audioCtx && media.audioCtx.state !== "running") notes.push(`audio ${media.audioCtx.state}: tap here`);
+        info.textContent = `${media.video ? media.frames + " fps · " : ""}${Math.round(media.bytes / 1024)} KB/s` +
+          (notes.length ? " · " + notes.join(" · ") : "");
+      }
+      media.frames = 0;
+      media.bytes = 0;
+    }, 1000);
+    // The camera's panel carries the stream's line (fps, KB/s) for both.
+    const cam = add(has("camera") ? "gc0308" : "es7210", "in", "av motion", "", el("div", { className: "row" }, [watch, vsize].filter(() => has("camera"))), img, info);
+    if (has("mic")) add("es7210", "in", "av", "", el("div", { className: "row" }, [listen, chanSel]));
+    vsize.onchange = () => { if (media.video) reopen(); };
+    if (has("snapshot")) {
+      // Full-resolution still: the robot switches the sensor to 640x480 for one frame.
+      const shot = el("img", { alt: "Robot snapshot", hidden: true, style: "width:100%;border-radius:10px;margin-top:8px" });
+      const link = el("a", { textContent: "Download", hidden: true });
+      c.onSnapshot = (e) => {
+        const url = `/api/robots/${encodeURIComponent(c.id)}/snapshot?t=${Date.parse(e.ts) || Date.now()}`;
+        shot.src = url;
+        shot.hidden = false;
+        link.href = url;
+        link.download = `${c.id}-${(e.ts || "").replace(/[:.]/g, "-")}.jpg`;
+        link.hidden = false;
+        say(`Snapshot ${Math.round(e.bytes / 1024)} KB`);
+      };
+      // An encrypted robot's snapshot is opened here, in the browser (e2eAttach): never on the server.
+      let lastShot = "";
+      c.showSnapshot = (jpeg) => {
+        const url = URL.createObjectURL(new Blob([jpeg], { type: "image/jpeg" }));
+        if (lastShot) URL.revokeObjectURL(lastShot);
+        lastShot = shot.src = link.href = url;
+        shot.hidden = link.hidden = false;
+        link.download = `${c.id}-${new Date().toISOString().replace(/[:.]/g, "-")}.jpg`;
+        say(`Snapshot ${Math.round(jpeg.length / 1024)} KB (end-to-end encrypted)`);
+      };
+      // The sealed still needs a media socket open to come through: a quiet one (no video, no
+      // audio) while a snapshot is on its way, closed a while after.
+      const quiet = { ws: null, timer: 0 };
+      const snapshot = async () => {
+        if (c.robot && c.robot.e2e) {
+          clearTimeout(quiet.timer);
+          if (!quiet.ws || quiet.ws.readyState > WebSocket.OPEN) {
+            const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/robots/${encodeURIComponent(c.id)}/media?video=0&audio=0`);
+            ws.binaryType = "arraybuffer";
+            e2eAttach(ws, c.id);
+            quiet.ws = ws;
+            await new Promise((ok) => { ws.addEventListener("open", ok, { once: true }); ws.addEventListener("close", ok, { once: true }); });
+          }
+          quiet.timer = setTimeout(() => { quiet.ws?.close(); quiet.ws = null; }, 20000);
+        }
+        run("snapshot", {}, "snapshot (takes a second)");
+      };
+      const snapBtn = el("button", { className: "soft", textContent: "Snapshot 640×480", onclick: snapshot });
+      snapBtn.dataset.privacy = "1";
+      cam.box.append(el("div", { className: "row", style: "margin-top:8px" }, [
+        snapBtn, link,
+      ]), shot);
+    }
+    if (has("camera_config")) {
+      const mirror = el("input", { type: "checkbox" }), flip = el("input", { type: "checkbox" });
+      mirror.onchange = () => run("camera_config", { mirror: mirror.checked }, "camera mirror " + (mirror.checked ? "on" : "off"));
+      flip.onchange = () => run("camera_config", { flip: flip.checked }, "camera flip " + (flip.checked ? "on" : "off"));
+      cam.box.append(el("div", { className: "row", style: "margin-top:4px" }, [
+        el("label", { className: "check muted", style: "margin-top:0" }, [mirror, "Mirror"]),
+        el("label", { className: "check muted", style: "margin-top:0" }, [flip, "Flip"]),
+      ]));
+    }
+    if (has("camera_reg")) {
+      // Raw GC0308 registers (see its datasheet), e.g. exposure and gain; the answer comes as a camera_reg event.
+      const reg = el("input", { className: "code", value: "0x03", ariaLabel: "Sensor register" });
+      const val = el("input", { className: "code", placeholder: "value", ariaLabel: "Register value" });
+      cam.box.append(el("div", { className: "row", style: "margin-top:8px" }, [
+        el("span", { className: "muted", textContent: "Sensor register" }), reg, val,
+        el("button", { className: "soft", textContent: "Read", onclick: () => run("camera_reg", { reg: Number(reg.value) }, "read register") }),
+        el("button", { className: "soft", textContent: "Write", onclick: () => {
+          if (val.value.trim() === "") { say("Enter a value to write"); return; }
+          run("camera_reg", { reg: Number(reg.value), value: Number(val.value) }, "write register");
+        } }),
+      ]));
+    }
+  }
+
+  // Right below the camera, to steer the head while watching.
+  if (has("nod") || has("shake") || has("home") || has("look")) {
+    const servos = add("servos", "out", "motion", "");
+    servos.box.append(el("div", { className: "row" }, ["nod", "shake", "home"].filter(has).map((cmd) =>
+      el("button", { textContent: cmd, onclick: () => run(cmd) }))));
+    if (has("look")) {
+      const look = () => run("look", { yaw: +c.sliders.head_yaw_deg.input.value, pitch: +c.sliders.head_pitch_deg.input.value }, "look");
+      const head = { live: true, steps: [-15, -5, 5, 15], showNow: true };
+      servos.box.append(el("div", { className: "axes" }, [
+        slider("Yaw", -128, 128, "head_yaw_deg", "°", look, head),
+        slider("Pitch", 5, 85, "head_pitch_deg", "°", look, head),  // M5Stack: keep the Y servo within 5..85°
+      ]));
+    }
+    if (has("hold")) {
+      // Off by default: the servos go slack at rest (the head can be turned by hand, no hum,
+      // less battery). Hold keeps them powered at the current angle for a limited time.
+      const holdSel = el("select", { className: "select", ariaLabel: "Hold the head position" },
+        [["0", "Off"], ["30", "30 s"], ["60", "1 min"], ["120", "2 min"], ["300", "5 min"]].map(([v, t]) => el("option", { value: v, textContent: t })));
+      holdSel.onchange = () => run("hold", { seconds: +holdSel.value }, +holdSel.value ? `hold for ${holdSel.selectedOptions[0].textContent}` : "hold off");
+      c.holdSel = holdSel;
+      servos.box.append(el("div", { className: "row", style: "margin-top:8px" }, [
+        el("span", { className: "muted", textContent: "Hold position" }), holdSel,
+        el("span", { className: "muted", style: "font-size:0.85rem", textContent: "servos stay powered at the current angle, then go slack again" }),
+      ]));
+    }
+    if (has("servo_power")) {
+      add("servo-supply", "out", "motion", "", el("div", { className: "row" }, [
+        el("span", { className: "muted", textContent: "Servo power" }),
+        el("button", { className: "soft", textContent: "On", onclick: () => run("servo_power", { on: true }, "servo power on") }),
+        el("button", { className: "soft", textContent: "Off", onclick: () => run("servo_power", { on: false }, "servo power off") }),
+      ]));
+    }
+    if (has("rotate")) {
+      // Continuous yaw, time-limited. The robot asks on its own screen first (only the person
+      // there can see whether a cable is in the head's USB-C); the Yes holds until a cable is
+      // plugged in or out.
+      const speed = el("select", { className: "select", ariaLabel: "Rotation speed" },
+        [["150", "Slow"], ["350", "Medium"], ["700", "Fast"]].map(([v, t]) => el("option", { value: v, textContent: t })));
+      const secs = el("select", { className: "select", ariaLabel: "Rotation time" },
+        [["3", "3 s"], ["10", "10 s"], ["30", "30 s"]].map(([v, t]) => el("option", { value: v, textContent: t })));
+      const spin = (dir) => run("rotate", { velocity: dir * +speed.value, seconds: +secs.value }, `rotate ${dir > 0 ? "right" : "left"}`);
+      servos.box.append(el("div", { className: "row", style: "margin-top:8px" }, [
+        el("span", { className: "muted", textContent: "Rotate" }),
+        el("button", { className: "soft", textContent: "⟲", ariaLabel: "Rotate left", onclick: () => spin(-1) }),
+        el("button", { className: "soft", textContent: "Stop", onclick: () => run("rotate", { velocity: 0 }, "rotate stop") }),
+        el("button", { className: "soft", textContent: "⟳", ariaLabel: "Rotate right", onclick: () => spin(1) }),
+        speed, secs,
+      ]));
+    }
+  }
+
+  if (has("speaker")) {
+    // Audio to the robot's speaker: binary 0x03 + sample rate (uint16 LE) + s16le mono,
+    // over its own media socket. The robot plays 24 kHz; we resample here.
+    const RATE = 24000;
+    const spk = { ws: null, ready: null, talk: null };
+    const info = el("div", { className: "muted stats" });
+    const socket = () => {
+      if (spk.ws && spk.ws.readyState <= 1) return spk.ready;
+      const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/robots/${encodeURIComponent(c.id)}/media?video=0&audio=0`);
+      spk.ws = ws;
+      spk.ready = new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = () => reject(new Error("speaker socket failed")); });
+      return spk.ready;
+    };
+    const send = (f32) => {
+      const msg = new Uint8Array(3 + f32.length * 2);
+      msg[0] = 0x03; msg[1] = RATE & 0xff; msg[2] = RATE >> 8;
+      const pcm = new DataView(msg.buffer, 3);
+      for (let i = 0; i < f32.length; i++) pcm.setInt16(i * 2, Math.max(-1, Math.min(1, f32[i])) * 32767, true);
+      if (spk.ws && spk.ws.readyState === 1) spk.ws.send(msg);
+    };
+    const resample = (f32, from) => {
+      if (from === RATE) return f32;
+      const out = new Float32Array(Math.floor(f32.length * RATE / from));
+      for (let i = 0; i < out.length; i++) {
+        const x = i * from / RATE, j = Math.floor(x), t = x - j;
+        out[i] = (f32[j] || 0) * (1 - t) + (f32[j + 1] || 0) * t;
+      }
+      return out;
+    };
+    // Paced send: 100 ms chunks, at most ~400 ms ahead of real time.
+    const playSamples = async (f32) => {
+      await socket();
+      wakeIfBlank();
+      const chunk = RATE / 10, start = performance.now();
+      for (let i = 0; i < f32.length; i += chunk) {
+        const ahead = (i / RATE) * 1000 - (performance.now() - start);
+        if (ahead > 400) await new Promise((r) => setTimeout(r, ahead - 400));
+        send(f32.subarray(i, i + chunk));
+      }
+    };
+    const playFile = async (file) => {
+      const buf = await new (window.AudioContext || window.webkitAudioContext)().decodeAudioData(await file.arrayBuffer());
+      const off = new OfflineAudioContext(1, Math.ceil(buf.duration * RATE), RATE);
+      const src = off.createBufferSource();
+      src.buffer = buf;
+      src.connect(off.destination);
+      src.start();
+      const f32 = (await off.startRendering()).getChannelData(0);
+      info.textContent = `Playing ${file.name} (${buf.duration.toFixed(1)} s)`;
+      await playSamples(f32);
+      info.textContent = "";
+    };
+    const beep = () => {
+      const f32 = new Float32Array(RATE * 0.3);
+      for (let i = 0; i < f32.length; i++) f32[i] = 0.3 * Math.sin(2 * Math.PI * 880 * i / RATE) * Math.min(1, (f32.length - i) / 800);
+      return playSamples(f32);
+    };
+    // Talk: tap to start, tap again to stop. (Holding breaks on phones, where the
+    // first tap opens the microphone permission prompt.)
+    const startTalk = async () => {
+      if (spk.talk || spk.starting) return;
+      spk.starting = true;
+      talk.textContent = "Starting…";
+      try {
+        await socket();
+        wakeIfBlank();
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        await ctx.resume();
+        const node = ctx.createScriptProcessor(2048, 1, 1);
+        node.onaudioprocess = (e) => send(resample(e.inputBuffer.getChannelData(0), ctx.sampleRate));
+        ctx.createMediaStreamSource(stream).connect(node);
+        node.connect(ctx.destination); // required for onaudioprocess; the output stays silent
+        spk.talk = { stream, ctx };
+        info.textContent = "Talking through the robot…";
+      } finally {
+        spk.starting = false;
+        talk.textContent = spk.talk ? "Stop talking" : "Talk";
+      }
+    };
+    const stopTalk = () => {
+      if (!spk.talk) return;
+      spk.talk.stream.getTracks().forEach((t) => t.stop());
+      spk.talk.ctx.close();
+      spk.talk = null;
+      talk.textContent = "Talk";
+      info.textContent = "";
+    };
+
+    const talk = el("button", { textContent: "Talk" });
+    if (window.isSecureContext && navigator.mediaDevices) {
+      talk.onclick = () => (spk.talk ? stopTalk() : startTalk().catch((err) => say("Talk failed: " + err.message)));
+    } else {
+      // Browsers give the microphone only to secure pages: link the server's HTTPS port if it has one.
+      talk.disabled = true;
+      talk.dataset.alwaysDisabled = "1";
+      info.textContent = "Talking needs a secure page (https://).";
+      serverInfo.then((i) => {
+        if (i.https_url) {
+          info.replaceChildren("Talking needs a secure page: ", el("a", { href: i.https_url + "/", textContent: "open " + i.https_url }),
+            " (accept the certificate warning once).");
+        }
+      });
+    }
+    const file = el("input", { type: "file", accept: "audio/*", hidden: true });
+    file.onchange = () => {
+      if (file.files.length) playFile(file.files[0]).catch((err) => say("Play failed: " + err.message));
+      file.value = "";
+    };
+    add("aw88298", "out", "av", "", el("div", { className: "row" }, [
+      talk, file,
+      el("button", { className: "soft", textContent: "Play sound file", onclick: () => file.click() }),
+      el("button", { className: "soft", textContent: "Beep", onclick: () => beep().catch((err) => say("Beep failed: " + err.message)) }),
+    ]), info);
+  }
+
+  c.tabs = el("nav", { className: "views", ariaLabel: "Views" }, VIEWS.map(([v, label, hint]) => {
+    const b = el("button", { type: "button", textContent: label, title: hint, onclick: () => setView(v) });
+    b.dataset.view = v;
+    return b;
+  }));
+  c.body = el("div", { className: "parts" });
+  c.root = el("section", { className: "card" }, [
+    el("div", { className: "head" }, [c.dot, el("span", { className: "name", textContent: r.id }), c.meta]),
+    c.summary, c.tabs, c.body, status]);
+  c.partBoxes = new Map(); // part id -> {root, readings, last}
+  c.lastEvents = {};       // part id -> the part's last event, as text
+  c.readingRows = new Map(); // part id -> [[label, value], ...] from the latest telemetry
+  // partBox is a part's section: its name, chip, a link to it on the 3D robot, its last event,
+  // its readings, then its panels.
+  const partBox = (id) => {
+    if (c.partBoxes.has(id)) return c.partBoxes.get(id);
+    const part = PARTS.find((p) => p.id === id);
+    const b = { readings: el("table", { className: "readings" }), last: el("div", { className: "lastev" }), content: el("div") };
+    b.root = el("section", { className: "part" }, [
+      el("div", { className: "part-head" }, [
+        el("h3", { textContent: part.name }),
+        part.chip && el("span", { className: "chipname", textContent: part.chip }),
+        part.pick && el("a", { className: "s3d", href: S3D + "?pick=" + part.pick + "#raw", target: "_blank", rel: "noopener",
+          textContent: "3D", title: "Where it is on the robot: s.i41.eu/s3d" }),
+      ].filter(Boolean)),
+      b.last, b.readings, b.content]);
+    c.partBoxes.set(id, b);
+    return b;
+  };
+  // layout places the panels of the current view: part by part in PARTS order, each part with its
+  // readings (not in "out") and its panels; Events first in "parts" and "in".
+  c.layout = () => {
+    const view = currentView;
+    c.tabs.querySelectorAll("button").forEach((b) => b.classList.toggle("here", b.dataset.view === view));
+    const inView = (p) => view === "parts" || p.io === view || p.more.includes(view);
+    const out = [];
+    if (view === "parts" || view === "in") out.push(c.eventsPanel);
+    for (const part of PARTS) {
+      const panels = c.panels.filter((p) => p.part === part.id && inView(p));
+      const rows = c.readingRows.get(part.id) || [];
+      // In a task view, readings only where they belong to it: parts sensing there, and the servos' angles.
+      const readings = rows.length > 0 && view !== "out" &&
+        (view === "parts" || view === "in" || panels.some((p) => p.io === "in") || (part.id === "servos" && panels.length > 0));
+      if (!panels.length && !readings) continue;
+      const b = partBox(part.id);
+      b.readings.hidden = !readings;
+      b.last.textContent = c.lastEvents[part.id] || "";
+      b.last.hidden = !c.lastEvents[part.id];
+      b.content.replaceChildren(...panels.map((p) => p.box));
+      out.push(b.root);
+    }
+    c.body.replaceChildren(...out);
+    c.laidOut = c.layoutKey;
+  };
+
+  c.update = (r) => {
+    // Screen blank? Events are instant; telemetry (every 2 s) wins once events are quiet.
+    if ("screensaver" in r.telemetry && Date.now() - (c.blankEventAt || 0) > 3000) {
+      c.blank = r.telemetry.screensaver > 0;
+    }
+    c.dot.className = "dot" + (r.online ? " on" : "");
+    const state = r.online ? "online"
+      : r.standby_until ? "standby until " + new Date(r.standby_until).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "offline, seen " + ago(r.last_seen);
+    c.meta.textContent = state + (r.model ? " · " + r.model : "");
+    // Readings, part by part: the known ones in LABELS order, then the rest by name.
+    const order = Object.keys(LABELS);
+    const keys = Object.keys(r.telemetry).sort((a, b) => {
+      const ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia < 0 ? 1e3 : ia) - (ib < 0 ? 1e3 : ib) || a.localeCompare(b);
+    });
+    c.readingRows = new Map();
+    for (const k of keys) {
+      if (HIDDEN_READINGS.has(k)) continue;
+      const part = partOf(k);
+      if (!c.readingRows.has(part)) c.readingRows.set(part, []);
+      c.readingRows.get(part).push([k, ...reading(k, r.telemetry[k])]);
+    }
+    const layoutKey = [...c.readingRows.keys()].sort().join(" ");
+    if (layoutKey !== c.layoutKey) { c.layoutKey = layoutKey; c.layout(); }
+    for (const [part, rows] of c.readingRows) {
+      const b = c.partBoxes.get(part);
+      if (!b) continue;
+      b.readings.replaceChildren(...rows.map(([k, label, v]) =>
+        el("tr", { title: k }, [el("td", { textContent: label }), el("td", { textContent: v })])));
+    }
+    const t = r.telemetry;
+    const bits = [];
+    if ("battery_pct" in t) bits.push(`🔋 ${t.battery_pct}%` + (t.charging ? " charging" : ""));
+    if ("wifi_rssi_dbm" in t) bits.push(`Wi-Fi ${t.wifi_rssi_dbm} dBm`);
+    if ("uptime_s" in t) bits.push("up " + duration(t.uptime_s));
+    if (t.screensaver > 0) bits.push("screen blank");
+    if (t.hold_s > 0) bits.push(`head held ${t.hold_s} s`);
+    c.summary.textContent = keys.length ? bits.join(" · ") : "No readings yet.";
+    if (c.holdSel && r.telemetry.hold_s === 0 && c.holdSel.value !== "0" && document.activeElement !== c.holdSel) {
+      c.holdSel.value = "0"; // the hold ran out on the robot
+    }
+    if (c.proxLabel && "proximity_on" in r.telemetry) {
+      c.proxLabel.hidden = false;
+      if (Date.now() - (c.proxTouched || 0) > 4000) c.proxBox.checked = r.telemetry.proximity_on > 0;
+    }
+    if (c.autoLabel && "auto_brightness" in r.telemetry) {
+      c.autoLabel.hidden = false;
+      if (Date.now() - (c.autoTouched || 0) > 4000) c.autoBright.checked = r.telemetry.auto_brightness > 0;
+    }
+    // Show the robot's reported value; follow it only when the user hasn't
+    // touched the slider for a while, so it doesn't jump back mid-move.
+    for (const [key, s] of Object.entries(c.sliders || {})) {
+      if (!(key in r.telemetry)) continue;
+      const reported = Math.round(r.telemetry[key]);
+      if (s.showNow) s.now.textContent = `· now ${reported}${s.unit}`;
+      if (Date.now() - s.touched > 4000) {
+        s.input.value = reported;
+        s.value.textContent = reported + s.unit;
+      }
+    }
+    // Camera and microphone controls are also off while they are off on the robot itself (privacy).
+    const camOff = !!(r.telemetry && r.telemetry.camera_mic_off > 0);
+    [c.root, c.filesView, ...c.panels.map((p) => p.box)].filter(Boolean).forEach((root) => root.querySelectorAll("button, input, select").forEach((e) => {
+      if (e.dataset.view) return; // the view tabs work offline too
+      const blocked = camOff && e.dataset.privacy === "1";
+      e.disabled = !r.online || e.dataset.alwaysDisabled === "1" || blocked;
+      if (e.dataset.privacy === "1") e.title = blocked ? "Camera and microphone are off on the robot: only its Manager screen or a USB setup turns them on" : "";
+    }));
+    if (c.pingBtn) c.pingBtn.disabled = !r.online || c.pinging;
+  };
+  c.addEvent = (ev) => {
+    // The server replays recent events on (re)connect; skip ones already shown.
+    const key = `${ev.seq}|${ev.ts}`;
+    if (c.seen.has(key)) return;
+    c.seen.add(key);
+    if (ev.name === "screensaver_on" || ev.name === "screensaver_off") {
+      c.blank = ev.name === "screensaver_on";
+      c.blankEventAt = Date.now();
+    }
+    if (ev.command) { // sent by a browser (command_sent)
+      c.events.unshift({ sent: true, text: new Date(ev.ts).toLocaleTimeString() + "  → " + describeCommand(ev.command, ev.args) });
+      c.events.length = Math.min(c.events.length, 40);
+      c.renderEvents();
+      return;
+    }
+    if (/_(refused|failed|stopped)$/.test(ev.name) && Date.now() - Date.parse(ev.ts) < 10000) {
+      // e.g. rotate_refused: say it where the button was pressed, not only in Events
+      status.textContent = ev.name.replaceAll("_", " ") + ((ev.data || {}).reason ? ": " + ev.data.reason : "");
+    }
+    if (ev.name === "rotate_asking" && Date.now() - Date.parse(ev.ts) < 10000) status.textContent = "Confirm on the robot's screen: tap Yes to turn the head";
+    if (ev.name === "server_asking" && Date.now() - Date.parse(ev.ts) < 10000) status.textContent = "Confirm on the robot's screen: tap Yes to change its server";
+    if (ev.name === "privacy") { // the camera and mic, as set on the robot
+      c.privacyReason = (ev.data || {}).reason || "";
+      c.privacyMode = (ev.data || {}).mode === "night" ? "off at night, " + (ev.data || {}).night : (ev.data || {}).mode || "";
+      if (c.robot) privacyStatus(c, c.robot);
+    }
+    if (ev.name === "ir_received" && c.onIr) c.onIr(ev.data || {});
+    if (ev.name === "nfc_tag" && c.onNfc) c.onNfc(ev.data || {});
+    if (ev.name === "servers" && c.onServers) c.onServers(ev.data || {});
+    if (ev.name === "assets" && c.onAssets) c.onAssets(ev.data || {});
+    if (/^asset_(saved|error|deleted)$/.test(ev.name) && c.onAssetEvent && Date.now() - Date.parse(ev.ts) < 60000) c.onAssetEvent(ev.name, ev.data || {});
+    const d = ev.data || {};
+    const where = ev.name === "assets" ? ` (${(() => { try { return JSON.parse(d.list).files.length; } catch { return "?"; } })()} files, ${Math.round((d.free || 0) / 1024)} KB free)`
+      : ev.name.startsWith("asset_") ? ` ${d.name || ""}` + ("bytes" in d ? ` (${d.bytes} bytes)` : "") + (d.reason ? `: ${d.reason}` : "")
+      : "x" in d ? ` (${d.x}, ${d.y})` + (d.sprite ? ` on ${d.sprite} (${d.sprite_x}, ${d.sprite_y})` : "") + (d.picture ? ` · picture ${d.picture}` : "")
+      : "manual" in d ? (d.manual ? " (manual)" : " (auto)")
+      : "list" in d ? ` (${(() => { try { return JSON.parse(d.list).length; } catch { return "?"; } })()} servers)`
+      : "reg" in d ? ` ${hex(d.reg)} = ${d.value < 0 ? "failed" : hex(d.value)}`
+      : "press" in d ? ` (${d.press})`
+      : "reason" in d ? `: ${d.reason}`
+      : "seconds" in d ? ` (${d.seconds} s)`
+      : "z0" in d ? ` (zones ${d.z0}·${d.z1}·${d.z2})`
+      : "ms" in d ? ` (${d.ms} ms)`
+      : "value" in d ? ` (${d.value})`
+      : "protocol" in d ? (d.protocol === "nec" ? ` NEC ${hex(d.address)} / ${hex(d.command)}` : ` raw (${(d.raw || "").split(",").length} timings)`)
+      : "uid" in d ? ` ${d.uid}` + (d.type ? ` (${d.type.replaceAll("_", " ")})` : "") + (d.text ? ` “${d.text}”` : "") + (d.mem ? ` · ${d.mem.length / 2} bytes read` : "")
+      : "";
+    const line = new Date(ev.ts).toLocaleTimeString() + "  " + ev.name.replaceAll("_", " ") + where;
+    c.events.unshift({ sent: false, text: line });
+    const part = PARTS.find((p) => p.events && p.events.test(ev.name));
+    if (part) {
+      c.lastEvents[part.id] = "Last: " + line;
+      const b = c.partBoxes.get(part.id);
+      if (b) { b.last.textContent = c.lastEvents[part.id]; b.last.hidden = false; }
+    }
+    c.events.length = Math.min(c.events.length, 40);
+    c.renderEvents();
+  };
+  // All / Robot only / Sent only; the choice is kept in this browser.
+  try { c.eventFilter.value = localStorage.getItem("stackchan-events-filter") || "all"; } catch { /* private mode */ }
+  c.eventFilter.onchange = () => {
+    try { localStorage.setItem("stackchan-events-filter", c.eventFilter.value); } catch { /* private mode */ }
+    c.renderEvents();
+  };
+  c.renderEvents = () => {
+    const f = c.eventFilter.value;
+    const shown = c.events.filter((e) => f === "all" || (f === "sent") === e.sent).slice(0, 10);
+    c.eventList.replaceChildren(...(shown.length ? shown.map((e) => el("li", { className: e.sent ? "sent" : "", textContent: e.text }))
+      : [el("li", { className: "sent", textContent: "Nothing yet." })]));
+  };
+  return c;
+}
+
+// #files/<robot>: that robot's files on a page of their own; anything else: the dashboard.
+const filesPage = document.getElementById("filespage");
+function route() {
+  const m = location.hash.match(/^#files\/(.+)$/);
+  const c = m && cards.get(decodeURIComponent(m[1]));
+  if (c && c.filesView) {
+    filesPage.replaceChildren(
+      el("p", {}, [el("a", { href: "#", textContent: "← Raw data" })]),
+      el("p", { className: "muted", textContent: "Files on " + c.id }), c.filesView);
+    filesPage.hidden = false;
+    list.hidden = true;
+    c.refreshFiles();
+  } else {
+    filesPage.hidden = true;
+    list.hidden = false;
+  }
+}
+window.addEventListener("hashchange", route);
+
+function upsert(r) {
+  let c = cards.get(r.id);
+  if (!c) {
+    if (!connLine.textContent) connLine.textContent = "Live";
+    c = makeCard(r);
+    cards.set(r.id, c);
+    const ids = [...cards.keys()].sort();
+    list.replaceChildren(...ids.map((id) => cards.get(id).root));
+    route();
+  }
+  if (r.e2e) {
+    r = { ...r, telemetry: { ...r.telemetry, ...E2E.telemetry(r.id) } };
+    E2E.noteRobot(r).catch((e) => console.warn("e2e:", e));
+  }
+  c.robot = r;
+  c.update(r);
+  e2eStatus(c, r);
+  privacyStatus(c, r);
+  empty.hidden = cards.size > 0;
+}
+
+// privacyStatus shows the camera and microphone as set on the robot itself (its Manager screen or
+// USB): off now (telemetry camera_mic_off), or a mode other than on (event privacy).
+function privacyStatus(c, r) {
+  if (!c.privacyLine) {
+    c.privacyLine = el("p", { className: "muted" });
+    c.root.insertBefore(c.privacyLine, c.root.children[1] || null);
+  }
+  const off = !!(r.telemetry && r.telemetry.camera_mic_off > 0);
+  c.privacyLine.hidden = !off && !(c.privacyMode && c.privacyMode !== "on");
+  c.privacyLine.textContent = off
+    ? "📷 Camera and microphone are off on the robot" + (c.privacyReason && c.privacyReason !== "off on the robot" ? ` (${c.privacyReason})` : "") + ": only its Manager screen or a USB setup turns them on."
+    : `📷 Camera and microphone: ${c.privacyMode} (set on the robot).`;
+}
+
+// e2eStatus shows whether this browser can read an encrypted robot.
+function e2eStatus(c, r) {
+  if (!c.e2eLine) {
+    c.e2eLine = el("p", { className: "muted" });
+    c.root.insertBefore(c.e2eLine, c.root.children[1] || null);
+  }
+  c.e2eLine.hidden = !r.e2e;
+  if (!r.e2e) return;
+  c.e2eLine.textContent = !window.isSecureContext
+    ? "🔒 This robot is end-to-end encrypted, and this page cannot decrypt (it is not HTTPS): open the HTTPS page" +
+      (c.httpsURL ? ` (${c.httpsURL})` : "") + " and scan the QR code on the robot's screen again."
+    : E2E.ready(r.id) ? "🔒 End-to-end encrypted: the server relays only ciphertext."
+    : E2E.known(r.id) ? "🔒 End-to-end encrypted: unlocking…"
+    : "🔒 This robot is end-to-end encrypted: scan the QR code on its screen with this device to see its data (pairing through another browser does not bring the key).";
+  if (!window.isSecureContext && c.httpsURL === undefined) {
+    c.httpsURL = "";
+    serverInfo.then((i) => { if (i.https_url) { c.httpsURL = i.https_url; e2eStatus(c, r); } });
+  }
+}
+
+// Join requests (see server join.go): an unpaired browser asks, a paired one answers.
+const joinBtn = document.getElementById("join");
+const joinStatus = document.getElementById("joinStatus");
+const joinsBox = document.getElementById("joins");
+const joinBanners = new Map(); // request id -> banner
+joinBtn.onclick = async () => {
+  joinBtn.disabled = true;
+  try {
+    const res = await fetch("/api/join", { method: "POST" });
+    if (!res.ok) throw new Error((await res.text()).trim());
+    const j = await res.json();
+    joinStatus.replaceChildren("Waiting for approval on the phone. Code: ", el("span", { className: "joincode", textContent: j.code }));
+    setTimeout(() => {
+      if (!cards.size) { joinStatus.textContent = "The request expired."; joinBtn.disabled = false; }
+    }, Math.max(0, new Date(j.expires) - Date.now()));
+  } catch (err) {
+    joinStatus.textContent = err.message;
+    joinBtn.disabled = false;
+  }
+};
+document.getElementById("codeForm").onsubmit = (e) => {
+  e.preventDefault();
+  const code = document.getElementById("codeInput").value.trim();
+  if (code) location.href = "/pair?code=" + encodeURIComponent(code);
+};
+const closeJoin = (id) => {
+  const box = joinBanners.get(id);
+  if (box) { box.remove(); joinBanners.delete(id); }
+};
+const showJoin = (j) => {
+  if (joinBanners.has(j.id)) return;
+  const note = el("div", { className: "muted" });
+  const answer = async (decision) => {
+    try {
+      const res = await fetch(`/api/join/${encodeURIComponent(j.id)}/${decision}`, { method: "POST" });
+      if (!res.ok) throw new Error((await res.text()).trim());
+      closeJoin(j.id);
+    } catch (err) {
+      note.textContent = err.message;
+    }
+  };
+  const box = el("div", { className: "joinreq" }, [
+    el("div", { textContent: `${j.agent} at ${j.from} asks to control your robots.` }),
+    el("div", { style: "margin-top:4px" }, ["Code: ", el("span", { className: "joincode", textContent: j.code })]),
+    el("div", { className: "muted", style: "font-size:0.85rem", textContent: "Allow only if the browser you want to add shows the same code." }),
+    el("div", { className: "row", style: "margin-top:8px" }, [
+      el("button", { textContent: "Allow", onclick: () => answer("approve") }),
+      el("button", { className: "soft", textContent: "Deny", onclick: () => answer("deny") }),
+    ]),
+    note,
+  ]);
+  joinBanners.set(j.id, box);
+  joinsBox.append(box);
+  setTimeout(() => closeJoin(j.id), Math.max(0, new Date(j.expires) - Date.now()));
+};
+
+function connect() {
+  const es = new EventSource("/api/events");
+  es.addEventListener("join_request", (ev) => showJoin(JSON.parse(ev.data)));
+  es.addEventListener("join_closed", (ev) => closeJoin(JSON.parse(ev.data).id));
+  es.addEventListener("join_result", (ev) => {
+    if (JSON.parse(ev.data).status === "approved") {
+      location.href = "/"; // paired now: reload, the robots come with the new stream
+    } else {
+      joinStatus.textContent = "The request was denied.";
+      joinBtn.disabled = false;
+    }
+  });
+  es.addEventListener("open", () => { connLine.textContent = cards.size ? "Live" : ""; });
+  es.addEventListener("robot", (ev) => upsert(JSON.parse(ev.data)));
+  es.addEventListener("pong", (ev) => {
+    const p = JSON.parse(ev.data);
+    const pending = pendingPings.get(p.id);
+    if (pending) {
+      pendingPings.delete(p.id);
+      pending.resolve({ ...p, total: performance.now() - pending.t0 });
+    }
+  });
+  es.addEventListener("e2e", async (ev) => {
+    const e = JSON.parse(ev.data);
+    let f;
+    try { f = await E2E.onEvent(e); } catch (err) { console.warn("e2e:", err); return; }
+    const c = cards.get(e.robot);
+    if (!f || !c) return;
+    if (f.kind === "E2EGroupKey" || f.kind === "RobotTelemetry") {
+      if (c.robot) upsert(c.robot);
+    } else if (f.kind === "RobotEvent") {
+      c.addEvent({ robot: e.robot, name: f.body.name, data: f.body.data, ts: new Date().toISOString(), seq: Date.now() });
+    } else if (f.kind === "RobotPong") {
+      const pending = pendingPings.get(f.body.id);
+      if (pending) {
+        pendingPings.delete(f.body.id);
+        pending.resolve({ ...f.body, total: performance.now() - pending.t0 });
+      }
+    }
+  });
+  es.addEventListener("robot_event", (ev) => {
+    const e = JSON.parse(ev.data);
+    const c = cards.get(e.robot);
+    if (c) c.addEvent(e);
+  });
+  es.addEventListener("snapshot", (ev) => {
+    const e = JSON.parse(ev.data);
+    const c = cards.get(e.robot);
+    if (c && c.onSnapshot) c.onSnapshot(e);
+  });
+  es.addEventListener("command_sent", (ev) => {
+    const e = JSON.parse(ev.data);
+    const c = cards.get(e.robot);
+    if (c) c.addEvent(e);
+  });
+  es.addEventListener("error", () => { connLine.textContent = "Reconnecting…"; });
+}
+
+empty.hidden = false;
+connect();
+// Account in the top bar (sign-in exists only when the server has it configured).
+fetch("/api/me", { credentials: "same-origin" }).then((r) => r.json()).then((me) => {
+  managerURL = me.manager_url || "";
+  // Robots are added and set up on the manager that gave them their tokens.
+  if (me.manager_url) {
+    for (const a of document.querySelectorAll("a.mgr")) { a.href = me.manager_url + "/"; a.hidden = false; }
+    for (const a of document.querySelectorAll("a.mgr-setup")) a.href = me.manager_url + "/";
+    for (const p of document.querySelectorAll(".mgr-p")) p.hidden = false;
+  }
+  const acct = document.getElementById("acct");
+  // Tiers (with sign-in only) set the limits; 640x480 video from tier 3 up.
+  if (!me.full_video) {
+    for (const o of document.querySelectorAll("option.full-video")) { o.disabled = true; o.textContent += " (" + (me.tier_hint || "not in your tier") + ")"; }
+    document.body.dataset.noFullVideo = "1";
+  }
+  if (me.signed_in && me.tier) {
+    const t = document.createElement("span");
+    t.textContent = "tier " + me.tier + " · ";
+    t.title = me.tier_hint || "";
+    acct.append(t);
+  }
+  if (me.signed_in) {
+    acct.append(me.name + " · ");
+    const out = document.createElement("a");
+    out.href = "#"; out.textContent = "Sign out";
+    out.addEventListener("click", async (ev) => {
+      ev.preventDefault();
+      await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
+      location.reload();
+    });
+    acct.append(out);
+  } else if (me.sign_in) {
+    const a = document.createElement("a");
+    a.href = "/auth/login"; a.textContent = "Sign in";
+    acct.append(a);
+    // On a server with sign-in, robots are private to their owners: no join requests from
+    // anonymous browsers (they would only bother others); sign in instead.
+    const join = document.getElementById("join");
+    if (join) {
+      const link = document.createElement("a");
+      link.href = "/auth/login"; link.textContent = "Sign in to see your robots";
+      join.replaceWith(link);
+      const status = document.getElementById("joinStatus");
+      if (status) status.remove();
+    }
+  }
+}).catch(() => {});
+// Refresh "seen … ago" for offline robots.
+setInterval(() => { for (const c of cards.values()) if (c.robot && !c.robot.online) c.update(c.robot); }, 5000);
+</script>
+</body>
+</html>

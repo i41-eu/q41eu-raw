@@ -1,0 +1,23 @@
+{
+  "RobotPriv": "1111111111111111111111111111111111111111111111111111111111111111",
+  "RobotPub": "e06Qm75__kTEZaIgA31gjuNYl9Me-XLwf3SJLLD3PxM",
+  "BrowserPriv": "2222222222222222222222222222222222222222222222222222222222222222",
+  "BrowserPub": "D6poTtKIZ7l_Smot7l34zpdOdrcBjj8iocTPJnhXDyA",
+  "Secret": "MzMzMzMzMzMzMzMzMzMzMw",
+  "Fragment": "e2e=1.e06Qm75__kTEZaIgA31gjuNYl9Me-XLwf3SJLLD3PxM.MzMzMzMzMzMzMzMzMzMzMw",
+  "EnrollMAC": "remhiwvmX6vN7dHhGuSXN7EycbTwlkC1NuWCBPJEpDk",
+  "BrowserID": "65cf5c9b1de5d41f",
+  "Pairwise": "19a1f6c4ecdd0c719dcf5b7cfc2e00ba27fb672961324eaee3e6f3aeb4ef11d6",
+  "RobotID": "stackchan-0a1b2c3d4e50",
+  "Epoch": 3,
+  "GroupKey": "4444444444444444444444444444444444444444444444444444444444444444",
+  "GroupKeyNonce": "VVVVVVVVVVVVVVVV",
+  "GroupKeySealed": "6cc8Qc-D08bFiRV5UA6f6UnNNb7EN27mXSiJz0nhnsRB9tx4WMumEcjG99H5HE9a",
+  "BinaryNonce": "666666666666666666666666",
+  "BinaryInner": 1,
+  "BinaryPayload": "6672616d65",
+  "BinarySealed": "3000000003666666666666666666666666ebf588a36eae30c9148987b577cd27717ea1f6879e02",
+  "CommandNonce": "d3d3d3d3d3d3d3d3",
+  "CommandPlain": "{\"command\":\"nod\",\"args\":{},\"seq\":1}",
+  "CommandSealed": "aAfjBRWCTCTQwskFA5fQ0E2Iuhds076Jw7U2ktxuMB7dOM85qUBwLXVCbGeuMcIaYC1B"
+}
