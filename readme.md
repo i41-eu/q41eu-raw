@@ -8,7 +8,7 @@ Relay between M5Stack Stackchan robots and web browsers for **Embody Mode**. It 
 - **Browser:** scans the robot's QR code to pair, then gets a live dashboard.
 - **Server:** one Go binary with the web page built in. State lives in memory and is saved to a JSON file, so pairings survive a restart.
 
-The robot side is the [Embody Mode app](https://github.com/i41-eu/i41eu-embody/tree/main/firmware/main/apps/app_embody_mode) in the robot's firmware, [i41eu-embody](https://github.com/i41-eu/i41eu-embody) (M5Stack's StackChan firmware with Embody Mode). **Setting up a robot** is the Stackchan manager's job ([i41eu-manager](https://github.com/i41-eu/i41eu-manager)), and optional: one button on its page in Chrome installs the firmware and gives the robot the apps you approve, this one among them; your own firmware build: [SETUP.md](https://github.com/i41-eu/i41eu-embody/blob/main/firmware/main/apps/app_embody_mode/SETUP.md).
+The robot side is the [Embody Mode app](https://github.com/i41-eu/i41eu-StackChan/tree/embody/firmware/main/apps/app_embody_mode) in the robot's firmware, [i41eu-StackChan](https://github.com/i41-eu/i41eu-StackChan) (M5Stack's StackChan firmware with Embody Mode). **Setting up a robot** is the Stackchan manager's job ([i41eu-manager](https://github.com/i41-eu/i41eu-manager)), and optional: one button on its page in Chrome installs the firmware and gives the robot the apps you approve, this one among them; your own firmware build: [SETUP.md](https://github.com/i41-eu/i41eu-StackChan/blob/embody/firmware/main/apps/app_embody_mode/SETUP.md).
 
 Part of [i41eu-arch](https://github.com/i41-eu/i41eu-arch), a local first, privacy first platform for a home: this repo holds the Go implementation of its device wire protocol (the `wire` package), which the other servers use too.
 
@@ -27,7 +27,7 @@ Part of [i41eu-arch](https://github.com/i41-eu/i41eu-arch), a local first, priva
 
 | Piece | What it is | Needed? |
 |---|---|---|
-| **Robot** | a Stackchan with the [Embody Mode firmware](https://github.com/i41-eu/i41eu-embody/tree/main/firmware/main/apps/app_embody_mode). On its screen the **app switcher** (the QR screen: Next, Connect) lists its apps and switches between them; its gear opens the **Manager screen** (which manager it has, turn it off or on). | yes |
+| **Robot** | a Stackchan with the [Embody Mode firmware](https://github.com/i41-eu/i41eu-StackChan/tree/embody/firmware/main/apps/app_embody_mode). On its screen the **app switcher** (the QR screen: Next, Connect) lists its apps and switches between them; its gear opens the **Manager screen** (which manager it has, turn it off or on). | yes |
 | **Apps** | what the robot does, one at a time. Each app is a web service: the robot connects to it, and a phone or browser opens its web page. This repo is [Raw data](https://s.i41.eu/raw); the apps online: [s.i41.eu](https://s.i41.eu/#apps) | at least one |
 | **Phone or browser** | opens an app's page and pairs with the robot by scanning its QR code; with end-to-end encryption only paired browsers can read the robot | to use an app |
 | **Manager** | [i41eu-manager](https://github.com/i41-eu/i41eu-manager): the web service that sets robots up over USB, gives each robot its own token per app, and switches and changes apps from its page; on your own computer (the home manager) or online at [m.i41.eu](https://m.i41.eu), which a home manager may link to | optional: without it, apps are written over USB and switched on the robot's app switcher |
@@ -397,10 +397,10 @@ the [roadmap](docs/roadmap.md).
 
 ## Related projects
 
-- [i41eu-embody](https://github.com/i41-eu/i41eu-embody): the robot's firmware (M5Stack's StackChan firmware with Embody Mode).
+- [i41eu-StackChan](https://github.com/i41-eu/i41eu-StackChan): the robot's firmware (M5Stack's StackChan firmware with Embody Mode).
 - Other app servers the robot can switch to, on the same `wire` package: [q41eu-pet](https://github.com/i41-eu/q41eu-pet) (a Tamagotchi for kids) and [q41eu-sbot](https://github.com/i41-eu/q41eu-sbot) (a cockpit for the robot and a TPBot car, growing into the home node).
 - [i41eu-arch](https://github.com/i41-eu/i41eu-arch): the platform, its use cases, architecture and the wire protocol's reference. All the repos: [The repos today](https://github.com/i41-eu/i41eu-arch#the-repos-today).
-- The robot's [hardware coverage](https://github.com/i41-eu/i41eu-embody/blob/main/firmware/main/apps/app_embody_mode/HARDWARE.md) and the [trust design](https://github.com/i41-eu/i41eu-arch/blob/main/docs/implementations/stackchan-trust.md) behind the [roadmap](docs/roadmap.md).
+- The robot's [hardware coverage](https://github.com/i41-eu/i41eu-StackChan/blob/embody/firmware/main/apps/app_embody_mode/HARDWARE.md) and the [trust design](https://github.com/i41-eu/i41eu-arch/blob/main/docs/implementations/stackchan-trust.md) behind the [roadmap](docs/roadmap.md).
 
 ## Credits
 
