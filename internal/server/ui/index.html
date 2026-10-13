@@ -199,6 +199,11 @@ const empty = document.getElementById("empty");
 const connLine = document.getElementById("conn");
 const cards = new Map();     // robot id -> card
 const pendingPings = new Map(); // ping id -> {t0, resolve}
+// The side a yaw (or a rotation's velocity) turns the head to. A positive yaw turns it to the
+// robot's own left, counter-clockwise seen from above (M5Stack: moveX(900) is "Turn Left", a
+// positive rotateX counter-clockwise); a negative one to its right. On this page left and right
+// are the robot's own, as its camera sees them.
+const yawSide = (v) => (v > 0 ? "left" : v < 0 ? "right" : "");
 // A sent command as a short line for the Events list.
 function describeCommand(cmd, a) {
   a = a || {};
@@ -208,7 +213,10 @@ function describeCommand(cmd, a) {
       text = "IR " + (a.raw ? `raw (${String(a.raw).split(",").length} timings)` : `NEC ${hex(a.address || 0)} / ${hex(a.command || 0)}`) +
         (a.frames > 1 ? ` · ${a.frames}×` : "") + (a.repeat ? ` · hold ×${a.repeat}` : "") + (a.loopback ? " · self-test" : "");
       break;
-    case "look": text = `look yaw ${a.yaw}° pitch ${a.pitch}°`; break;
+    case "look": text = `look yaw ${a.yaw}°${a.yaw ? ` (${yawSide(a.yaw)})` : ""} pitch ${a.pitch}°`; break;
+    case "rotate":
+      text = a.velocity ? `rotate ${yawSide(a.velocity)} ${a.velocity > 0 ? "⟲" : "⟳"} velocity ${a.velocity}` + (a.seconds ? `, ${a.seconds} s` : "") : "rotate stop";
+      break;
     case "leds": text = "LEDs " + (a.effect || (a.pixels ? "single LEDs" : [a.left, a.right].filter(Boolean).join(" "))); break;
     case "say": text = `say “${a.text || ""}”`; break;
     case "picture": text = `picture (${Math.round((a.bytes || 0) / 1024)} KB)`; break;
@@ -361,6 +369,7 @@ const FORMAT = {
   usb_data: (v) => (v ? "yes" : "no"),
   yaw_moving: (v) => (v ? "yes" : "no"), pitch_moving: (v) => (v ? "yes" : "no"),
   servo_power: (v) => (v ? "on" : "off"),
+  head_yaw_deg: (v) => `${v}°` + (yawSide(v) ? ` (${yawSide(v)})` : ""),
   rtc_unix: (v) => new Date(v * 1000).toLocaleString(), system_unix: (v) => new Date(v * 1000).toLocaleString(),
 };
 
@@ -819,26 +828,35 @@ function makeCard(r) {
     }
   }
 
-  // A slider with −/+ chips. It holds the value the user chose ("target") and
+  // A slider with chips on both sides. It holds the value the user chose ("target") and
   // shows the robot's reported value as "now …"; it follows the robot again
   // only after a few seconds without user input (servos need time to arrive).
-  const slider = (label, min, max, key, unit, onValue, { live = false, steps = [], showNow = false } = {}) => {
+  // steps: the chips, negative ones left of the slider, positive ones right of it; a chip
+  // moves the value toward its side. reversed: the slider's right end is its minimum.
+  // show: a value as text. chipText: a step's label and title.
+  const slider = (label, min, max, key, unit, onValue, { live = false, steps = [], showNow = false, reversed = false,
+    show = (v) => v + unit,
+    chipText = (step) => [(step > 0 ? "+" : "−") + Math.abs(step), `${label} ${step > 0 ? "+" : "−"}${Math.abs(step)}${unit}`] } = {}) => {
     const input = el("input", { type: "range", min, max, value: Math.round((min + max) / 2), ariaLabel: label });
-    const value = el("span", { className: "axis-value", textContent: input.value + unit });
+    if (reversed) input.dir = "rtl";
+    const value = el("span", { className: "axis-value", textContent: show(+input.value) });
     const now = el("span", { className: "muted" });
-    const s = { input, value, now, unit, touched: 0, showNow };
+    const s = { input, value, now, show, touched: 0, showNow };
     let timer = 0;
     const set = (v, send) => {
       v = Math.max(min, Math.min(max, Math.round(v)));
       input.value = v;
-      value.textContent = v + unit;
+      value.textContent = show(v);
       s.touched = Date.now();
       if (send) { clearTimeout(timer); timer = setTimeout(() => onValue(v), 120); }
     };
     input.oninput = () => set(+input.value, live);
     input.onchange = () => set(+input.value, true);
-    const chip = (step) => el("button", { className: "chip", textContent: (step > 0 ? "+" : "−") + Math.abs(step),
-      ariaLabel: `${label} ${step > 0 ? "+" : "−"}${Math.abs(step)}${unit}`, onclick: () => set(+input.value + step, true) });
+    const chip = (step) => {
+      const [text, title] = chipText(step);
+      return el("button", { className: "chip", textContent: text, title, ariaLabel: title,
+        onclick: () => set(+input.value + (reversed ? -step : step), true) });
+    };
     c.sliders = c.sliders || {};
     c.sliders[key] = s;
     return el("div", { className: "axis" }, [
@@ -1264,8 +1282,16 @@ function makeCard(r) {
     if (has("look")) {
       const look = () => run("look", { yaw: +c.sliders.head_yaw_deg.input.value, pitch: +c.sliders.head_pitch_deg.input.value }, "look");
       const head = { live: true, steps: [-15, -5, 5, 15], showNow: true };
+      // Right is the robot's own right, as its camera sees it: the yaw slider's right end is
+      // -128 and the chips on its right lower the yaw (yawSide).
+      const yaw = slider("Yaw", -128, 128, "head_yaw_deg", "°", look, {
+        ...head, reversed: true,
+        show: (v) => (v ? `${Math.abs(v)}° ${yawSide(v)}` : "0°"),
+        chipText: (step) => [step < 0 ? `←${-step}` : `${step}→`, `Turn the head ${Math.abs(step)}° to the robot's ${step < 0 ? "left" : "right"}`],
+      });
+      c.sliders.head_yaw_deg.input.title = "Left and right as the robot sees them (its camera)";
       servos.box.append(el("div", { className: "axes" }, [
-        slider("Yaw", -128, 128, "head_yaw_deg", "°", look, head),
+        yaw,
         slider("Pitch", 5, 85, "head_pitch_deg", "°", look, head),  // M5Stack: keep the Y servo within 5..85°
       ]));
     }
@@ -1296,12 +1322,16 @@ function makeCard(r) {
         [["150", "Slow"], ["350", "Medium"], ["700", "Fast"]].map(([v, t]) => el("option", { value: v, textContent: t })));
       const secs = el("select", { className: "select", ariaLabel: "Rotation time" },
         [["3", "3 s"], ["10", "10 s"], ["30", "30 s"]].map(([v, t]) => el("option", { value: v, textContent: t })));
-      const spin = (dir) => run("rotate", { velocity: dir * +speed.value, seconds: +secs.value }, `rotate ${dir > 0 ? "right" : "left"}`);
+      // A positive velocity turns like a positive yaw: to the robot's left, counter-clockwise
+      // seen from above.
+      const spin = (dir) => run("rotate", { velocity: dir * +speed.value, seconds: +secs.value }, `rotate to the robot's ${yawSide(dir)}`);
       servos.box.append(el("div", { className: "row", style: "margin-top:8px" }, [
         el("span", { className: "muted", textContent: "Rotate" }),
-        el("button", { className: "soft", textContent: "⟲", ariaLabel: "Rotate left", onclick: () => spin(-1) }),
+        el("button", { className: "soft", textContent: "⟲", ariaLabel: "Rotate to the robot's left",
+          title: "Rotate to the robot's left (counter-clockwise seen from above)", onclick: () => spin(1) }),
         el("button", { className: "soft", textContent: "Stop", onclick: () => run("rotate", { velocity: 0 }, "rotate stop") }),
-        el("button", { className: "soft", textContent: "⟳", ariaLabel: "Rotate right", onclick: () => spin(1) }),
+        el("button", { className: "soft", textContent: "⟳", ariaLabel: "Rotate to the robot's right",
+          title: "Rotate to the robot's right (clockwise seen from above)", onclick: () => spin(-1) }),
         speed, secs,
       ]));
     }
@@ -1533,10 +1563,10 @@ function makeCard(r) {
     for (const [key, s] of Object.entries(c.sliders || {})) {
       if (!(key in r.telemetry)) continue;
       const reported = Math.round(r.telemetry[key]);
-      if (s.showNow) s.now.textContent = `· now ${reported}${s.unit}`;
+      if (s.showNow) s.now.textContent = `· now ${s.show(reported)}`;
       if (Date.now() - s.touched > 4000) {
         s.input.value = reported;
-        s.value.textContent = reported + s.unit;
+        s.value.textContent = s.show(reported);
       }
     }
     // Camera and microphone controls are also off while they are off on the robot itself (privacy).

@@ -46,6 +46,12 @@ func dialRobot(ts *httptest.Server, token, id string) (*websocket.Conn, *http.Re
 
 func connectRobot(t *testing.T, ts *httptest.Server, id string, class string) *testRobot {
 	t.Helper()
+	return connectRobotWith(t, ts, id, class, []string{"nod", "ping", "camera", "mic", "image", "speaker", "assets"})
+}
+
+// connectRobotWith connects a robot that offers these commands.
+func connectRobotWith(t *testing.T, ts *httptest.Server, id string, class string, commands []string) *testRobot {
+	t.Helper()
 	ws, _, err := dialRobot(ts, testToken, id)
 	if err != nil {
 		t.Fatalf("dial: %v", err)
@@ -54,7 +60,7 @@ func connectRobot(t *testing.T, ts *httptest.Server, id string, class string) *t
 	r := &testRobot{t: t, ws: ws}
 	r.send(wire.KindRegister, wire.RegisterBody{
 		Class:        class,
-		Capabilities: wire.RobotCapabilities{Model: "test", Commands: []string{"nod", "ping", "camera", "mic", "image", "speaker", "assets"}},
+		Capabilities: wire.RobotCapabilities{Model: "test", Commands: commands},
 	})
 	return r
 }
